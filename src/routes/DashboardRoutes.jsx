@@ -44,13 +44,17 @@ export const DashboardRoutes = () => {
 							<Route path='nueva_solicitud' element={<NuevaSolicitud />} />
 							<Route path='solicitudes/:id' element={<VerSolicitud />} />
 							<Route path='usuarios' element={<Usuarios />} />
-							<Route path='editar_usuario' element={<EditarUsuario />} />
+							<Route path='editar_usuario/:rfc' element={<EditarUsuario />} />
 							<Route path='nuevo_usuario' element={<NuevoUsuario />} />
 							<Route path='alumnos' element={<Alumnos />} />
-							<Route path='editar_alumno' element={<EditarAlumno />} />
+							<Route path='editar_alumno/:rfc' element={<EditarAlumno />} />
 							<Route path='nuevo_alumno' element={<NuevoAlumno />} />
 							<Route path='problemas' element={<TablaProblemas />} />
 							<Route path='editar_problemas' element={<EditarProblemas />} />
+							<Route
+								path='editar_problemas/:id'
+								element={<EditarProblemas />}
+							/>
 							<Route path='configuraciones' element={<Configs />} />
 						</>
 					)}

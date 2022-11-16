@@ -30,7 +30,7 @@ export const TablaSolicitudes = () => {
 
 	useEffect(() => {
 		getSolicitudes();
-	}, []);
+	}, [setSolicitudes]);
 
 	return (
 		<>

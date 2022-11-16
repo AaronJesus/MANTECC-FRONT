@@ -1,7 +1,9 @@
+import { useFormik } from 'formik';
 import { useState } from 'react';
 
 export const Configs = () => {
 	const [edit, setEdit] = useState(false);
+
 	const handleEdit = () => {
 		setEdit(!edit);
 	};
@@ -37,12 +39,20 @@ export const Configs = () => {
 				</div>
 				<div className='d-flex justify-content-center'>
 					{edit ? (
-						<button
-							className='btn btn-warning btn-lg'
-							onClick={() => handleEdit()}
-						>
-							Guardar
-						</button>
+						<>
+							<button
+								className='btn btn-danger btn-lg'
+								onClick={() => handleEdit()}
+							>
+								Cancelar
+							</button>
+							<button
+								className='btn btn-warning btn-lg'
+								onClick={() => handleEdit()}
+							>
+								Guardar
+							</button>
+						</>
 					) : (
 						<button
 							className='btn btn-success btn-lg'

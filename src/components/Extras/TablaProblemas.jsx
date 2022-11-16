@@ -1,25 +1,48 @@
 import { NavLink } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/NavbarStyles.css';
-const problemas = [
-	{
-		id: 1,
-		problema: 'Problema 1',
-		tipo: 'Admin',
-	},
-	{
-		id: 2,
-		problema: 'Problema 2',
-		tipo: 'Admin',
-	},
-	{
-		id: 3,
-		problema: 'Problema 2',
-		tipo: 'Cliente',
-	},
-];
+import { useEffect } from 'react';
+import { useState } from 'react';
+import Swal from 'sweetalert2';
 
 export const TablaProblemas = () => {
+	const [prob, setProb] = useState();
+	const [estcheck, setEstchek] = useState(true);
+
+	const getData = async () => {
+		const data = await fetch('http://localhost:4000/problemas');
+		const res = await data.json();
+		setProb(res);
+	};
+
+	const handleDel = async (idP) => {
+		Swal.fire({
+			title: 'Seguro que desea eliminar el alumno?',
+			showDenyButton: true,
+			showConfirmButton: false,
+			showCancelButton: true,
+			cancelButtonText: 'Cancelar',
+			denyButtonText: `Eliminar`,
+		}).then(async (result) => {
+			if (result.isDenied) {
+				try {
+					const data = await fetch(`http://localhost:4000/problema/${idP}`, {
+						method: 'DELETE',
+					});
+					await data.json();
+					setEstchek(!estcheck);
+				} catch (error) {
+					console.log(error);
+					console.log('trono delete');
+				}
+			}
+		});
+	};
+
+	useEffect(() => {
+		getData();
+	}, [setProb, estcheck]);
+
 	return (
 		<>
 			<div className='d-flex m-3 justify-content-center'>
@@ -35,23 +58,29 @@ export const TablaProblemas = () => {
 						</tr>
 					</thead>
 					<tbody className='bg-white'>
-						{problemas.map((problema) => {
-							return (
-								<tr key={problema.id}>
-									<td>{problema.problema}</td>
-									<td>{problema.tipo}</td>
-									<td>
-										<NavLink
-											className='btn btn-success m-2'
-											to='/editar_problemas'
-										>
-											Editar
-										</NavLink>
-										<button className='btn btn-danger m-2'>Eliminar</button>
-									</td>
-								</tr>
-							);
-						})}
+						{!!prob &&
+							prob.map((problema) => {
+								return (
+									<tr key={problema.idProblema}>
+										<td>{problema.Descripcion}</td>
+										<td>{problema.Tipo}</td>
+										<td>
+											<NavLink
+												className='btn btn-success m-2'
+												to={`/editar_problemas/${problema.idProblema}`}
+											>
+												Editar
+											</NavLink>
+											<button
+												className='btn btn-danger m-2'
+												onClick={() => handleDel(problema.idProblema)}
+											>
+												Eliminar
+											</button>
+										</td>
+									</tr>
+								);
+							})}
 					</tbody>
 				</table>
 			</div>

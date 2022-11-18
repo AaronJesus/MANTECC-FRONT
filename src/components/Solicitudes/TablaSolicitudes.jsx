@@ -7,10 +7,9 @@ import { useState, useEffect } from 'react';
 
 export const TablaSolicitudes = () => {
 	const permisos = localStorage.getItem('role');
-	const [solicitudes, setSolicitudes] = useState([]);
+	const [solicitudes, setSolicitudes] = useState();
 	const [estado, setEstado] = useState([]);
 	const [dptos, setDptos] = useState();
-
 	const getSolicitudes = async () => {
 		try {
 			const getSol = await fetch('http://localhost:4000/solicitudes');
@@ -35,9 +34,10 @@ export const TablaSolicitudes = () => {
 	return (
 		<>
 			<div className='d-flex m-3 mx-5  justify-content-center '>
-				{!solicitudes ? (
+				{!!solicitudes && solicitudes.length === 0 && (
 					<h1>No hay solicitudes por mostrar</h1>
-				) : (
+				)}
+				{!!solicitudes && solicitudes.length !== 0 && (
 					<table className='table table-hover text-center align-middle'>
 						<thead className='bg-blue text-white'>
 							<tr>

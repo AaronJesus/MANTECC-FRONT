@@ -1,67 +1,53 @@
-import { useFormik } from 'formik';
+import { useEffect } from 'react';
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 
 export const Configs = () => {
-	const [edit, setEdit] = useState(false);
+	const [configs, setConfigs] = useState();
 
-	const handleEdit = () => {
-		setEdit(!edit);
+	const getData = async () => {
+		try {
+			const dataConf = await fetch('http://localhost:4000/configs');
+			const resC = await dataConf.json();
+			setConfigs(resC);
+		} catch (error) {
+			console.log(error);
+			console.log('Trono get data');
+		}
 	};
+
+	useEffect(() => {
+		getData();
+	}, [setConfigs]);
+
 	return (
 		<>
 			<div className='d-flex m-3 justify-content-center'>
 				<h1>Configuraciones</h1>
 			</div>
 			<div className='container'>
-				<div className='d-flex m-3'>
-					<label className='col-4 col-form-label'>
-						Revision de los documentos:
-					</label>
-					<input type='text' className='form-control w-25' disabled={!edit} />
-				</div>
-				<div className='d-flex m-3'>
-					<label className='col-4 col-form-label'>
-						Asignado por defecto a:
-					</label>
-					<select className='w-25 form-control' disabled={!edit}>
-						<option>Ray Nuztas</option>
-						<option>Alumno Servicio 1</option>
-						<option>Alumno Servicio 2</option>
-					</select>
-				</div>
-				<div className='d-flex m-3'>
-					<label className='col-4 col-form-label'>Aprobado por defecto:</label>
-					<select className='w-25 form-control' disabled={!edit}>
-						<option>Ana Alicia Valenzuela Huerta</option>
-						<option>etc</option>
-						<option>etc</option>
-					</select>
-				</div>
-				<div className='d-flex justify-content-center'>
-					{edit ? (
-						<>
-							<button
-								className='btn btn-danger btn-lg'
-								onClick={() => handleEdit()}
-							>
-								Cancelar
-							</button>
-							<button
-								className='btn btn-warning btn-lg'
-								onClick={() => handleEdit()}
-							>
-								Guardar
-							</button>
-						</>
-					) : (
-						<button
-							className='btn btn-success btn-lg'
-							onClick={() => handleEdit()}
-						>
-							Editar
-						</button>
-					)}
-				</div>
+				{!!configs &&
+					configs.map((c) => {
+						return (
+							<div key={c.idConfig} className='d-flex m-3'>
+								<label className='col-4 col-form-label'>
+									{c.Nombre_Campo}:
+								</label>
+								<input
+									type='text'
+									className='form-control w-25'
+									value={c.Valor}
+									disabled
+								/>
+								<NavLink
+									className='btn btn-success mx-5'
+									to={`/config/${c.idConfig}`}
+								>
+									Editar
+								</NavLink>
+							</div>
+						);
+					})}
 			</div>
 		</>
 	);

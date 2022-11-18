@@ -15,6 +15,7 @@ import { Configs } from '../components/Extras/Configs';
 import { EditarProblemas } from '../components/Extras/EditarProblemas';
 import { NuevoAlumno } from '../components/Alumnos/NuevoAlumno';
 import { NuevoUsuario } from '../components/Usuarios/NuevoUsuario';
+import { EditarConf } from '../components/Extras/EditarConf';
 
 export const DashboardRoutes = () => {
 	const role = localStorage.getItem('role');
@@ -56,6 +57,8 @@ export const DashboardRoutes = () => {
 								element={<EditarProblemas />}
 							/>
 							<Route path='configuraciones' element={<Configs />} />
+
+							<Route path='config/:id' element={<EditarConf />} />
 						</>
 					)}
 				</Routes>

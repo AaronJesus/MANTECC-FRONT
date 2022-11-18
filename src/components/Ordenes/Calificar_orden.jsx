@@ -17,6 +17,19 @@ export const CalificarOrden = () => {
 		},
 	});
 
+	const getRev = async () => {
+		try {
+			//3 es el numero de la revision
+			const dataConf = await fetch(`http://localhost:4000/config/3`);
+			const resC = await dataConf.json();
+			!!resC && setRev(resC[0]);
+		} catch (error) {
+			console.log(error);
+			console.log('Trono get Data');
+		}
+	};
+	const [rev, setRev] = useState();
+
 	const handleSend = async () => {
 		try {
 			const data = await fetch(`http://localhost:4000/orden/${id}`, {
@@ -34,7 +47,6 @@ export const CalificarOrden = () => {
 			console.log(error);
 		}
 	};
-
 	const getDatos = async () => {
 		try {
 			const data = await fetch(`http://localhost:4000/orden/${id}`);
@@ -53,7 +65,8 @@ export const CalificarOrden = () => {
 	};
 	useEffect(() => {
 		getDatos();
-	}, []);
+		getRev();
+	}, [setRev]);
 
 	return (
 		<>
@@ -82,7 +95,7 @@ export const CalificarOrden = () => {
 								<th scope='col'>
 									Referencia al punto de la norma ISO 9001:2015 7.1.3, 8.4
 								</th>
-								<th scope='col'>Revision: 5</th>
+								<th scope='col'>Revison: {!!rev && rev.Valor}</th>
 							</tr>
 						</tbody>
 					</table>

@@ -4,17 +4,27 @@ import { GrDocumentPdf } from 'react-icons/gr';
 import '../styles/NavbarStyles.css';
 import { FcCheckmark, FcCancel } from 'react-icons/fc';
 import { useState, useEffect } from 'react';
+import { saveAs } from 'file-saver';
+import jwtDecode from 'jwt-decode';
 
-export const TablaSolicitudes = () => {
-	const permisos = localStorage.getItem('role');
-	const [solicitudes, setSolicitudes] = useState();
+export const TablaSolicitudes = ({ solicitudes, cargando }) => {
+	const [role, setRole] = useState();
 	const [estado, setEstado] = useState([]);
 	const [dptos, setDptos] = useState();
-	const getSolicitudes = async () => {
+	const token = sessionStorage.getItem('token');
+
+	const handleId = () => {
+		if (!!token) {
+			const user = jwtDecode(token);
+
+			if (!!user) {
+				setRole(user.id_Usuario);
+			}
+		}
+	};
+
+	const getData = async () => {
 		try {
-			const getSol = await fetch('http://localhost:4000/solicitudes');
-			const resSol = await getSol.json();
-			setSolicitudes(resSol);
 			const getEst = await fetch('http://localhost:4000/estados');
 			const resEst = await getEst.json();
 			setEstado(resEst);
@@ -22,27 +32,45 @@ export const TablaSolicitudes = () => {
 			const resAreas = await getAreas.json();
 			setDptos(resAreas);
 		} catch (error) {
-			console.log('No se pudieron cargar las solicitudes');
+			console.log('No se pudieron cargar estados y areas');
 			console.log(error);
 		}
 	};
 
+	const downloadSol = async () => {
+		try {
+			const data = await fetch('http://localhost:4000/pdfSol', {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/pdf' },
+				responseType: 'blob',
+			});
+			const res = await data.blob();
+			saveAs(res, `Solicitud`);
+			console.log(res);
+		} catch (error) {
+			console.log(error);
+			console.log('PDF ni idea');
+		}
+	};
+
 	useEffect(() => {
-		getSolicitudes();
-	}, [setSolicitudes]);
+		getData();
+		handleId();
+	}, [setEstado, setDptos]);
+
+	if (cargando) {
+		return <h1>Cargando solicitudes...</h1>;
+	}
 
 	return (
 		<>
 			<div className='d-flex m-3 mx-5  justify-content-center '>
-				{!!solicitudes && solicitudes.length === 0 && (
-					<h1>No hay solicitudes por mostrar</h1>
-				)}
-				{!!solicitudes && solicitudes.length !== 0 && (
-					<table className='table table-hover text-center align-middle'>
-						<thead className='bg-blue text-white'>
+				{!!solicitudes && solicitudes.length !== 0 ? (
+					<table className='table table-sm table-hover text-center align-middle'>
+						<thead className='bg-blue text-white align-middle'>
 							<tr>
 								<th scope='col'>Solicitud</th>
-								{permisos === ('1' || '3') && <th scope='col'>Orden</th>}
+								{(role === 1 || role === 3) && <th scope='col'>Orden</th>}
 								<th scope='col'>Departamento</th>
 								<th scope='col'>Folio</th>
 								<th scope='col'>Aceptado</th>
@@ -51,27 +79,30 @@ export const TablaSolicitudes = () => {
 								<th scope='col'>Terminado por tecnico</th>
 								<th scope='col'>Aprobado por admin.</th>
 								<th scope='col'>Aprobado por cliente</th>
-								{permisos === ('1' || '3') && <th scope='col'>Editar</th>}
+								{(role === 1 || role === 3) && <th scope='col'>Editar</th>}
 							</tr>
 						</thead>
 						<tbody className='bg-white'>
 							{solicitudes.map((sol) => {
 								return (
-									<tr key={sol.Folio_Solicitud}>
+									<tr key={sol.Folio_Completo}>
 										<td>
 											<IconContext.Provider value={{ size: '40' }}>
-												<button className='border-0 bg-transparent m-2'>
+												<button
+													className='border-0 bg-transparent m-2'
+													onClick={() => downloadSol()}
+												>
 													<GrDocumentPdf />
 												</button>
 											</IconContext.Provider>
 											<NavLink
-												className='btn btn-primary m-2'
-												to={`/solicitudes/${sol.Folio_Solicitud}`}
+												className='btn btn-sm btn-primary m-2'
+												to={`/solicitudes/${sol.Folio_Completo}`}
 											>
 												Ver
 											</NavLink>
 										</td>
-										{permisos === ('1' || '3') && (
+										{(role === 1 || role === 3) && (
 											<td>
 												<IconContext.Provider value={{ size: '40' }}>
 													<button className='border-0 bg-transparent m-2'>
@@ -79,23 +110,21 @@ export const TablaSolicitudes = () => {
 													</button>
 												</IconContext.Provider>
 												<NavLink
-													className='btn btn-primary m-2'
-													to={`/ordenes/${sol.Folio_Solicitud}`}
+													className='btn btn-sm btn-primary m-2'
+													to={`/ordenes/${sol.Folio_Completo}`}
 												>
 													Ver
 												</NavLink>
 											</td>
 										)}
 
-										<td>
-											{!!dptos &&
-												dptos
-													.filter((dpt) => dpt.Clave_Area === sol.Clave_Area)
-													.map((d) => {
-														return d.Nombre;
-													})}
-										</td>
-										<td>{sol.Folio_Solicitud}</td>
+										{!!dptos &&
+											dptos
+												.filter((dpt) => dpt.Clave_Area === sol.Clave_Area)
+												.map((d) => {
+													return <td key={d.Clave_Area}>{d.Nombre}</td>;
+												})}
+										<td>{sol.Folio_Completo}</td>
 										{estado
 											.filter((est) => est.idEstatus === sol.idEstatus)
 											.map((e) => {
@@ -125,10 +154,10 @@ export const TablaSolicitudes = () => {
 															)}
 														</td>
 														<td>
-															{permisos === '2' && e.Aprobado_admin ? (
+															{role === 2 && e.Aprobado_admin ? (
 																<NavLink
 																	className='btn btn-success'
-																	to={`/calificar_orden/${sol.Folio_Solicitud}`}
+																	to={`/calificar_orden/${sol.Folio_Completo}`}
 																>
 																	Calificar
 																</NavLink>
@@ -138,11 +167,11 @@ export const TablaSolicitudes = () => {
 																<FcCancel />
 															)}
 														</td>
-														{permisos === ('1' || '3') && (
+														{(role === 1 || role === 3) && (
 															<td>
 																<NavLink
-																	className='btn btn-success'
-																	to={`/editar_solicitud/${sol.Folio_Solicitud}`}
+																	className='btn btn-success mx-3'
+																	to={`/editar_solicitud/${sol.Folio_Completo}`}
 																>
 																	Editar
 																</NavLink>
@@ -156,6 +185,8 @@ export const TablaSolicitudes = () => {
 							})}
 						</tbody>
 					</table>
+				) : (
+					<h1>No hay solicitudes por mostrar</h1>
 				)}
 			</div>
 		</>

@@ -10,26 +10,44 @@ import { Alumnos } from '../components/Alumnos/Alumnos';
 import { EditarUsuario } from '../components/Usuarios/EditarUsuario';
 import { EditarAlumno } from '../components/Alumnos/EditarAlumno';
 import { CalificarOrden } from '../components/Ordenes/Calificar_orden';
-import { TablaProblemas } from '../components/Extras/TablaProblemas';
+import { Problemas } from '../components/Problemas/Problemas';
 import { Configs } from '../components/Extras/Configs';
-import { EditarProblemas } from '../components/Extras/EditarProblemas';
+import { EditarProblemas } from '../components/Problemas/EditarProblemas';
 import { NuevoAlumno } from '../components/Alumnos/NuevoAlumno';
 import { NuevoUsuario } from '../components/Usuarios/NuevoUsuario';
 import { EditarConf } from '../components/Extras/EditarConf';
+import { useEffect, useState } from 'react';
+import jwtDecode from 'jwt-decode';
 
 export const DashboardRoutes = () => {
-	const role = localStorage.getItem('role');
+	const token = sessionStorage.getItem('token');
+	const [role, setRole] = useState();
+
+	const handleId = () => {
+		if (!!token) {
+			const user = jwtDecode(token);
+
+			if (!!user) {
+				setRole(user.id_Usuario);
+			}
+		}
+	};
+
+	useEffect(() => {
+		handleId();
+	}, []);
+
 	return (
 		<>
 			<Navbar />
 			<div>
 				<Routes>
-					{role === '2' ? (
+					{role === 2 ? (
 						<>
 							<Route path='/' element={<NuevaSolicitud />} />
+							<Route path='nueva_solicitud' element={<NuevaSolicitud />} />
 							<Route path='calificar_orden/:id' element={<CalificarOrden />} />
 							<Route path='solicitudes' element={<Solicitudes />} />
-							<Route path='nueva_solicitud' element={<NuevaSolicitud />} />
 							<Route path='solicitudes/:id' element={<VerSolicitud />} />
 						</>
 					) : (
@@ -50,7 +68,7 @@ export const DashboardRoutes = () => {
 							<Route path='alumnos' element={<Alumnos />} />
 							<Route path='editar_alumno/:rfc' element={<EditarAlumno />} />
 							<Route path='nuevo_alumno' element={<NuevoAlumno />} />
-							<Route path='problemas' element={<TablaProblemas />} />
+							<Route path='problemas' element={<Problemas />} />
 							<Route path='editar_problemas' element={<EditarProblemas />} />
 							<Route
 								path='editar_problemas/:id'

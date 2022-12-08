@@ -7,19 +7,8 @@ import '../styles/NavbarStyles.css';
 import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 
-export const TablaUsuarios = () => {
-	const [users, setUsers] = useState();
+export const TablaUsuarios = ({ users, cargando }) => {
 	const [estcheck, setEstchek] = useState(true);
-	const getUsers = async () => {
-		try {
-			const data = await fetch('http://localhost:4000/usuarios');
-			const res = await data.json();
-			!!res && setUsers(res);
-		} catch (error) {
-			console.log('trono users');
-			console.log(error);
-		}
-	};
 
 	const handleEst = async (rfc, est) => {
 		Swal.fire({
@@ -43,6 +32,7 @@ export const TablaUsuarios = () => {
 					);
 					setEstchek(!estcheck);
 					await data.json();
+					window.location.reload(false);
 				} catch (error) {
 					console.log(error);
 					console.log('trono estado');
@@ -67,6 +57,8 @@ export const TablaUsuarios = () => {
 					});
 					await data.json();
 					setEstchek(!estcheck);
+
+					window.location.reload(false);
 				} catch (error) {
 					console.log(error);
 					console.log('trono delete');
@@ -75,14 +67,15 @@ export const TablaUsuarios = () => {
 		});
 	};
 
-	useEffect(() => {
-		getUsers();
-	}, [setUsers, estcheck]);
+	useEffect(() => {}, [users, estcheck]);
 
+	if (cargando) {
+		return <h1>Cargando usuarios</h1>;
+	}
 	return (
 		<>
 			<div className='d-flex m-5 my-0 justify-content-center '>
-				<table className='table table-hover text-center align-middle'>
+				<table className='table table-sm table-hover text-center align-middle'>
 					<thead className='bg-blue text-white'>
 						<tr>
 							<th scope='col'>RFC</th>
@@ -129,13 +122,13 @@ export const TablaUsuarios = () => {
 										</td>
 										<td>
 											<NavLink
-												className='btn btn-success m-2'
+												className='btn btn-sm btn-success m-2'
 												to={`/editar_usuario/${user.RFC}`}
 											>
 												Editar
 											</NavLink>
 											<button
-												className='btn btn-danger m-2'
+												className='btn btn-sm btn-danger m-2'
 												onClick={() => handleDel(user.RFC)}
 											>
 												Eliminar
@@ -146,11 +139,6 @@ export const TablaUsuarios = () => {
 							})}
 					</tbody>
 				</table>
-			</div>
-			<div className='d-flex justify-content-center'>
-				<NavLink className='btn btn-primary btn-lg m-2' to='/nuevo_usuario'>
-					Nuevo
-				</NavLink>
 			</div>
 		</>
 	);

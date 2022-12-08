@@ -1,23 +1,15 @@
 import { NavLink } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/NavbarStyles.css';
-import { useEffect } from 'react';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 
-export const TablaProblemas = () => {
-	const [prob, setProb] = useState();
+export const TablaProblemas = ({ prob, cargando }) => {
 	const [estcheck, setEstchek] = useState(true);
-
-	const getData = async () => {
-		const data = await fetch('http://localhost:4000/problemas');
-		const res = await data.json();
-		setProb(res);
-	};
 
 	const handleDel = async (idP) => {
 		Swal.fire({
-			title: 'Seguro que desea eliminar el alumno?',
+			title: 'Seguro que desea eliminar el problema?',
 			showDenyButton: true,
 			showConfirmButton: false,
 			showCancelButton: true,
@@ -38,18 +30,14 @@ export const TablaProblemas = () => {
 			}
 		});
 	};
-
-	useEffect(() => {
-		getData();
-	}, [setProb, estcheck]);
+	if (cargando) {
+		return <h1>Cargando problemas</h1>;
+	}
 
 	return (
 		<>
-			<div className='d-flex m-3 justify-content-center'>
-				<h1>Problemas</h1>
-			</div>
 			<div className='d-flex m-5 my-0 justify-content-center '>
-				<table className='table table-hover text-center align-middle'>
+				<table className='table table-sm table-hover text-center align-middle'>
 					<thead className='bg-blue text-white'>
 						<tr>
 							<th scope='col'>Descripcion</th>
@@ -66,13 +54,13 @@ export const TablaProblemas = () => {
 										<td>{problema.Tipo}</td>
 										<td>
 											<NavLink
-												className='btn btn-success m-2'
+												className='btn btn-success btn-sm m-2'
 												to={`/editar_problemas/${problema.idProblema}`}
 											>
 												Editar
 											</NavLink>
 											<button
-												className='btn btn-danger m-2'
+												className='btn btn-danger btn-sm m-2'
 												onClick={() => handleDel(problema.idProblema)}
 											>
 												Eliminar
@@ -83,11 +71,6 @@ export const TablaProblemas = () => {
 							})}
 					</tbody>
 				</table>
-			</div>
-			<div className='d-flex justify-content-center'>
-				<NavLink className='btn btn-primary btn-lg m-2' to='/editar_problemas'>
-					Nuevo
-				</NavLink>
 			</div>
 		</>
 	);

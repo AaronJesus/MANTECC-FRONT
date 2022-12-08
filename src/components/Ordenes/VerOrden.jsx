@@ -142,7 +142,6 @@ export const VerOrden = () => {
 			if (!values.Tipo_Servicio) {
 				errors.Tipo_Servicio = 'La orden debe de tener un tipo de servicio';
 			}
-			console.log(errors);
 			return errors;
 		},
 		onSubmit: async (values) => {

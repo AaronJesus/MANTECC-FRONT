@@ -4,12 +4,16 @@ import { NavLink } from 'react-router-dom';
 
 export const Configs = () => {
 	const [configs, setConfigs] = useState();
+	const [periodo, setPeriodo] = useState();
 
 	const getData = async () => {
 		try {
 			const dataConf = await fetch('http://localhost:4000/configs');
 			const resC = await dataConf.json();
 			setConfigs(resC);
+			const dataP = await fetch('http://localhost:4000/periodos');
+			const resP = await dataP.json();
+			setPeriodo(resP);
 		} catch (error) {
 			console.log(error);
 			console.log('Trono get data');
@@ -33,12 +37,30 @@ export const Configs = () => {
 								<label className='col-4 col-form-label'>
 									{c.Nombre_Campo}:
 								</label>
-								<input
-									type='text'
-									className='form-control w-25'
-									value={c.Valor}
-									disabled
-								/>
+								{c.idConfig === 2 ? (
+									!!periodo &&
+									periodo
+										.filter((per) => per.idPeriodo === parseInt(c.Valor))
+										.map((p) => {
+											return (
+												<input
+													key={p.idPeriodo}
+													type='text'
+													className='form-control w-25'
+													value={p.Periodo}
+													disabled
+												/>
+											);
+										})
+								) : (
+									<input
+										type='text'
+										className='form-control w-25'
+										value={c.Valor}
+										disabled
+									/>
+								)}
+
 								<NavLink
 									className='btn btn-success mx-5'
 									to={`/config/${c.idConfig}`}

@@ -93,7 +93,7 @@ export const VerSolicitud = () => {
 					<div className='d-flex justify-content-end m-3 my-0'>
 						<label className='m-3 mx-1'>Folio</label>
 						<div className='d-flex m-3 mx-0 border-bottom border-dark'>
-							{!!val && val.Folio_Solicitud}
+							{!!val && val.Folio_Completo}
 						</div>
 					</div>
 					<div>

@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Moment from 'moment';
 import ith_logo from '../../assets/ith_logo.jpg';
 import { useFormik } from 'formik';
+import jwtDecode from 'jwt-decode';
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 export const NuevaSolicitud = () => {
 	const [verSug, setVerSug] = useState(false);
@@ -11,6 +14,24 @@ export const NuevaSolicitud = () => {
 	const [areas, setAreas] = useState();
 	const [prob, setProb] = useState();
 	const [rev, setRev] = useState();
+
+	const nav = useNavigate();
+	const token = sessionStorage.getItem('token');
+
+	const handleId = () => {
+		if (!!token) {
+			const user = jwtDecode(token);
+
+			if (!!user) {
+				formik.setFieldValue('RFC', user.RFC);
+				formik.setFieldValue('Nombres', user.Nombres);
+			}
+		}
+	};
+
+	useEffect(() => {
+		handleId();
+	}, []);
 
 	const handleVerSug = () => {
 		setVerSug(!verSug);
@@ -40,6 +61,7 @@ export const NuevaSolicitud = () => {
 		try {
 			const dataConf = await fetch(`http://localhost:4000/configs`);
 			const resC = await dataConf.json();
+			!!resC && formik.setFieldValue('idPeriodo', resC[1].Valor);
 			!!resC && setRev(resC[2]); //el 3er campo es la revision
 			!!resC && formik.setFieldValue('Asignado_a', resC[3].Valor); //el 4to es de asignado a
 			!!resC && formik.setFieldValue('Aprobado_Por', resC[4].Valor); //el 5to es de Aprobado por
@@ -50,8 +72,10 @@ export const NuevaSolicitud = () => {
 	};
 	const formik = useFormik({
 		initialValues: {
+			idPeriodo: '',
+			Nombres: '',
+			RFC: '',
 			Clave_Area: '',
-			Nombre_Solicitante: 'Valentin Elizalde Valencia',
 			Fecha_Elaboracion: Moment().format('MM/DD/YYYY'),
 			Descripcion_Servicio_Falla: '',
 			Lugar_Especifico: '',
@@ -119,12 +143,22 @@ export const NuevaSolicitud = () => {
 				req = formik.values.Descripcion_Servicio_Falla;
 			}
 			try {
+				const valid = await fetch(
+					`http://localhost:4000/solicitudRFC/${values.RFC}`
+				);
+				const res = await valid.json();
+				if (res.length > 0) {
+					Swal.fire('Tiene una solicitud pendiente');
+					return;
+				}
 				const data = await fetch('http://localhost:4000/solicitudes', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
+						idPeriodo: values.idPeriodo,
+						RFC: values.RFC,
 						Clave_Area: values.Clave_Area,
-						Nombre_Solicitante: values.Nombre_Solicitante,
+						Nombre_Solicitante: values.Nombres,
 						Descripcion_Servicio_Falla: req,
 						Fecha_Elaboracion: values.Fecha_Elaboracion,
 						Lugar_Especifico: values.Lugar_Especifico,
@@ -134,7 +168,8 @@ export const NuevaSolicitud = () => {
 					}),
 				});
 				await data.json();
-				window.alert('Jalo');
+				Swal.fire('Solicitud Enviada!');
+				nav('/solicitudes');
 			} catch (error) {
 				console.error('Send solicitud ' + error);
 			}
@@ -227,7 +262,7 @@ export const NuevaSolicitud = () => {
 								<input
 									className='w-50 m-3 col-form-label form-control'
 									readOnly
-									value={formik.values.Nombre_Solicitante}
+									value={formik.values.Nombres}
 								/>
 							</div>
 							<div className='d-flex m-3 my-0 border-top-0 border border-dark'>

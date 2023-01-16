@@ -8,6 +8,12 @@ import { Paginacion } from '../Extras/Paginacion';
 import jwtDecode from 'jwt-decode';
 import 'animate.css';
 import { useFormik } from 'formik';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
+import Datepicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import moment from 'moment';
+import { saveAs } from 'file-saver';
 
 export const Solicitudes = () => {
 	const [a, setA] = useState(1);
@@ -19,19 +25,22 @@ export const Solicitudes = () => {
 	const [solQuerys, setsolQuerys] = useState();
 	const [solTerminadasQuerys, setSolTerminadasQuerys] = useState();
 	const [q, setq] = useState(false);
-
+	const [fecha1, setFecha1] = useState('');
+	const [fecha2, setFecha2] = useState('');
 	const [solicitudes, setSolicitudes] = useState([]);
 	const [solicitudesTerm, setSolicitudesTerm] = useState();
+
 	const [currentPage, setCurrentPage] = useState(1);
 	const [postPerPage] = useState(10);
 	const [currentPosts, setcurrentPosts] = useState();
-	const [cargando, setCargando] = useState();
+	const [cargando, setCargando] = useState(false);
 	const lastPost = currentPage * postPerPage;
 	const firstPost = lastPost - postPerPage;
 
 	const token = sessionStorage.getItem('token');
 	const [role, setRole] = useState();
 	const [RFC, setRFC] = useState();
+
 	const handleId = () => {
 		if (!!token) {
 			const user = jwtDecode(token);
@@ -50,6 +59,15 @@ export const Solicitudes = () => {
 	const elimQuery = () => {
 		setSolTerminadasQuerys();
 		setsolQuerys();
+		formik.setFieldValue('idPeriodo', '');
+		formik.setFieldValue('RFC', '');
+		formik.setFieldValue('Nombres', '');
+		formik.setFieldValue('Clave_Area', '');
+		formik.setFieldValue('Folio', '');
+		formik.setFieldValue('Asignado_a', '');
+		setFecha1('');
+		setFecha2('');
+		setq(false);
 	};
 
 	const formik = useFormik({
@@ -58,36 +76,9 @@ export const Solicitudes = () => {
 			RFC: '',
 			Nombres: '',
 			Clave_Area: '',
-			Folio_Completo: '',
+			Folio: '',
 			Asignado_a: '',
-			Fecha_inicial: '',
-			Fecha_final: '',
-		},
-		validate: (values) => {
-			let errors;
-
-			if (!!values.Fecha_inicial) {
-				if (!values.Fecha_final) {
-					errors.Fecha_final = 'Debe de seleccionar una fecha final';
-				}
-			}
-
-			if (!!values.Fecha_final) {
-				if (!values.Fecha_inicial) {
-					errors.Fecha_inicial = 'Debe de seleccionar una fecha final';
-				}
-			}
-
-			if (!!values.Fecha_inicial) {
-				if (!!values.Fecha_final) {
-					if (values.Fecha_inicial > values.Fecha_final) {
-						errors.Fecha_final =
-							'La fecha final no puede ser antes que la fecha inicial';
-					}
-				}
-			}
-
-			return errors;
+			Fechas: '',
 		},
 		onSubmit: async (values) => {
 			setCargando(true);
@@ -96,62 +87,99 @@ export const Solicitudes = () => {
 				!values.RFC &&
 				!values.Nombres &&
 				!values.Clave_Area &&
-				!values.Folio_Completo &&
-				!values.Asignado_a &&
-				!values.Fecha_inicial &&
-				!values.Fecha_final
+				!values.Folio &&
+				!values.Asignado_a
 			) {
 				setq(false);
 			}
-			try {
-				if (a === 1) {
-					const getSol = await fetch(
-						'http://localhost:4000/solicitudes/query',
-						{
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								idPeriodo: values.idPeriodo,
-								RFC: values.RFC,
-								Nombre_Solicitante: values.Nombres,
-								Clave_Area: values.Clave_Area,
-								Folio_Completo: values.Folio_Completo,
-								Asignado_a: values.Asignado_a,
-								Fecha_inicial: values.Fecha_inicial,
-								Fecha_final: values.Fecha_final,
-							}),
-						}
-					);
-					const resSol = await getSol.json();
-					setq(true);
-					setsolQuerys(resSol);
-				} else if (a === 2) {
-					const getSolTerminadas = await fetch(
-						'http://localhost:4000/solicitudes/terminadas/query',
-						{
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								idPeriodo: values.idPeriodo,
-								RFC: values.RFC,
-								Nombre_Solicitante: values.Nombres,
-								Clave_Area: values.Clave_Area,
-								Folio_Completo: values.Folio_Completo,
-								Asignado_a: values.Asignado_a,
-								Fecha_inicial: values.Fecha_inicial,
-								Fecha_final: values.Fecha_final,
-							}),
-						}
-					);
-					const resSolTerminadas = await getSolTerminadas.json();
-					setq(true);
-					setSolTerminadasQuerys(resSolTerminadas);
-				}
 
-				setCargando(false);
-			} catch (error) {
-				console.log('No se pudieron cargar las solicitudes');
-				console.log(error);
+			if (!!fecha1) {
+				if (!fecha2) {
+					Swal.fire('Debe de seleccionar una fecha final');
+					setCargando(false);
+					return;
+				}
+			}
+
+			if (!!fecha2) {
+				if (!fecha1) {
+					Swal.fire('Debe de seleccionar una fecha inicial');
+					setCargando(false);
+					return;
+				}
+			}
+
+			if (!!fecha1) {
+				if (!!fecha2) {
+					if (fecha1 > fecha2) {
+						Swal.fire('La fecha inicial no puede ser mayor que la final');
+						setCargando(false);
+						return;
+					}
+				}
+			}
+
+			if (!cargando) {
+				try {
+					if (a === 1) {
+						const getSol = await fetch(
+							'http://localhost:4000/solicitudes/query',
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									idPeriodo: values.idPeriodo,
+									RFC: values.RFC,
+									Nombre_Solicitante: values.Nombres,
+									Clave_Area: values.Clave_Area,
+									Folio: values.Folio,
+									Asignado_a: values.Asignado_a,
+									Fecha1: !!fecha1
+										? moment.utc(fecha1).format('YYYY-MM-DD')
+										: '',
+									Fecha2: !!fecha2
+										? moment.utc(fecha2).format('YYYY-MM-DD')
+										: '',
+								}),
+							}
+						);
+						const resSol = await getSol.json();
+						setq(true);
+						setsolQuerys(resSol);
+					} else if (a === 2) {
+						const getSolTerminadas = await fetch(
+							'http://localhost:4000/solicitudes/terminadas/query',
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									idPeriodo: values.idPeriodo,
+									RFC: values.RFC,
+									Nombre_Solicitante: values.Nombres,
+									Clave_Area: values.Clave_Area,
+									Folio: values.Folio,
+									Asignado_a: values.Asignado_a,
+									Fecha1: !!fecha1
+										? moment.utc(fecha1).format('YYYY-MM-DD')
+										: '',
+									Fecha2: !!fecha2
+										? moment.utc(fecha2).format('YYYY-MM-DD')
+										: '',
+								}),
+							}
+						);
+						const resSolTerminadas = await getSolTerminadas.json();
+						setq(true);
+						setSolTerminadasQuerys(resSolTerminadas);
+					}
+
+					setCargando(false);
+				} catch (error) {
+					setCargando(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log('No se pudieron cargar las solicitudes');
+					console.log(error);
+				}
 			}
 		},
 	});
@@ -162,6 +190,11 @@ export const Solicitudes = () => {
 			const res = await data.json();
 			!!res && setPeriodos(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudieron cargar los periodos',
+				'Filtrar',
+				3000
+			);
 			console.log('Error al cargar periodos');
 			console.log(error);
 		}
@@ -173,6 +206,11 @@ export const Solicitudes = () => {
 			const res = await data.json();
 			!!res && setAreas(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudieron cargar las areas',
+				'Filtrar',
+				3000
+			);
 			console.log('Error al cargar areas');
 			console.log(error);
 		}
@@ -184,19 +222,25 @@ export const Solicitudes = () => {
 			const res = await data.json();
 			!!res && setUsers(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudieron cargar los tecnicos',
+				'Filtrar',
+				3000
+			);
 			console.log('Error al cargar usuarios');
 			console.log(error);
 		}
 	};
 	const getSolicitudes = async () => {
 		setCargando(true);
+
 		try {
 			//get idPeriodo
 			const dataConf = await fetch(`http://localhost:4000/configs`);
 			const resC = await dataConf.json();
 			if (!!resC) {
 				const dataPeriodo = await fetch(
-					`http://localhost:4000/periodo/${resC[1].Valor}`
+					`http://localhost:4000/periodo/${resC[0].Valor}`
 				);
 				const resP = await dataPeriodo.json();
 				//get periodo
@@ -204,7 +248,8 @@ export const Solicitudes = () => {
 			}
 			//getSolicitudes del periodo
 			if (!!role) {
-				if (role == 2) {
+				//solicitudes del rfc del cliente
+				if (role === 2) {
 					if (a === 1) {
 						const valid = await fetch(
 							`http://localhost:4000/solicitudRFC/${RFC}`
@@ -212,12 +257,12 @@ export const Solicitudes = () => {
 						const res = await valid.json();
 						setSolicitudes(res);
 					} else if (a === 2) {
-						////////////////////////////////////////////////////////////
-						//poner las terminadas por rfc para clientes
+						console.log(RFC);
 						const valid = await fetch(
 							`http://localhost:4000/solicitudRFC/term/${RFC}`
 						);
 						const res = await valid.json();
+						console.log(res);
 						setSolicitudesTerm(res);
 					}
 				} else {
@@ -226,7 +271,7 @@ export const Solicitudes = () => {
 							method: 'PUT',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
-								idPeriodo: !!resC && resC[1].Valor,
+								idPeriodo: !!resC && resC[0].Valor,
 							}),
 						});
 						const resSol = await getSol.json();
@@ -238,7 +283,7 @@ export const Solicitudes = () => {
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
 								body: JSON.stringify({
-									idPeriodo: !!resC && resC[1].Valor,
+									idPeriodo: !!resC && resC[0].Valor,
 								}),
 							}
 						);
@@ -247,11 +292,132 @@ export const Solicitudes = () => {
 					}
 				}
 			}
-
 			setCargando(false);
 		} catch (error) {
+			setCargando(false);
+
+			NotificationManager.warning(
+				'No se pudieron cargar las solicitudes',
+				'Error',
+				3000
+			);
 			console.log('No se pudieron cargar las solicitudes');
 			console.log(error);
+		}
+	};
+
+	const descargarVarias = async () => {
+		if (!fecha1) {
+			if (!!fecha2) {
+				Swal.fire('Debe de seleccionar una fecha inicial');
+			} else if (!fecha2) {
+				Swal.fire('Debe de seleccionar una fecha inicial y una fecha final');
+			}
+		} else if (!fecha2) {
+			Swal.fire('Debe de seleccionar una fecha final');
+		} else if (fecha1 > fecha2) {
+			Swal.fire('La fecha inicial no puede ser mayor que la final');
+		} else {
+			if (a === 1) {
+				if (!!solQuerys) {
+					for (let index = 0; index < solQuerys.length; index++) {
+						try {
+							const data = await fetch(
+								`http://localhost:4000/pdfSol/${solQuerys[index].Folio_Completo}`,
+								{
+									method: 'GET',
+									headers: { 'Content-Type': 'application/pdf' },
+									responseType: 'blob',
+								}
+							);
+							const res = await data.blob();
+							saveAs(res, `Solicitud ${solQuerys[index].Folio_Completo}`);
+						} catch (error) {
+							console.log(error);
+							console.log('PDF ni idea');
+						}
+					}
+				}
+			} else if (a === 2) {
+				if (!!solTerminadasQuerys) {
+					for (let index = 0; index < solTerminadasQuerys.length; index++) {
+						try {
+							const data = await fetch(
+								`http://localhost:4000/pdfSol/${solTerminadasQuerys[index].Folio_Completo}`,
+								{
+									method: 'GET',
+									headers: { 'Content-Type': 'application/pdf' },
+									responseType: 'blob',
+								}
+							);
+							const res = await data.blob();
+							saveAs(
+								res,
+								`Solicitud ${solTerminadasQuerys[index].Folio_Completo}`
+							);
+						} catch (error) {
+							console.log(error);
+							console.log('PDF ni idea');
+						}
+					}
+				}
+			}
+		}
+	};
+
+	const descargarVariasOrd = async () => {
+		if (!fecha1) {
+			if (!!fecha2) {
+				Swal.fire('Debe de seleccionar una fecha inicial');
+			} else if (!fecha2) {
+				Swal.fire('Debe de seleccionar una fecha inicial y una fecha final');
+			}
+		} else if (!fecha2) {
+			Swal.fire('Debe de seleccionar una fecha final');
+		} else if (fecha1 > fecha2) {
+			Swal.fire('La fecha inicial no puede ser mayor que la final');
+		} else {
+			if (a === 1) {
+				if (!!solQuerys) {
+					for (let index = 0; index < solQuerys.length; index++) {
+						try {
+							const data = await fetch(
+								`http://localhost:4000/pdfOrden/${solQuerys[index].Folio_Completo}`,
+								{
+									method: 'GET',
+									headers: { 'Content-Type': 'application/pdf' },
+									responseType: 'blob',
+								}
+							);
+							const res = await data.blob();
+							saveAs(res, `Orden ${solQuerys[index].Folio_Completo}`);
+						} catch (error) {
+							console.log(error);
+							console.log('PDF ni idea');
+						}
+					}
+				}
+			} else if (a === 2) {
+				if (!!solTerminadasQuerys) {
+					for (let index = 0; index < solTerminadasQuerys.length; index++) {
+						try {
+							const data = await fetch(
+								`http://localhost:4000/pdfOrden/${solTerminadasQuerys[index].Folio_Completo}`,
+								{
+									method: 'GET',
+									headers: { 'Content-Type': 'application/pdf' },
+									responseType: 'blob',
+								}
+							);
+							const res = await data.blob();
+							saveAs(res, `Orden ${solTerminadasQuerys[index].Folio_Completo}`);
+						} catch (error) {
+							console.log(error);
+							console.log('PDF ni idea');
+						}
+					}
+				}
+			}
 		}
 	};
 
@@ -263,23 +429,37 @@ export const Solicitudes = () => {
 		getPeriodos();
 		getUsers();
 		handleId();
-	}, [setCargando, setAreas, setPeriodos, setUsers, role]);
+	}, [setCargando, setAreas, setPeriodos, setUsers, role, a]);
 
 	useEffect(() => {
 		if (a === 1) {
-			if (q && !!solQuerys) {
+			if (!!q && !!solQuerys) {
 				setcurrentPosts(solQuerys.slice(firstPost, lastPost));
 			} else if (!!solicitudes) {
 				setcurrentPosts(solicitudes.slice(firstPost, lastPost));
 			}
 		} else if (a === 2) {
-			if (q && !!solTerminadasQuerys) {
+			if (!!q && !!solTerminadasQuerys) {
 				setcurrentPosts(solTerminadasQuerys.slice(firstPost, lastPost));
 			} else if (!!solicitudesTerm) {
 				setcurrentPosts(solicitudesTerm.slice(firstPost, lastPost));
 			}
 		}
-	}, [solQuerys, solTerminadasQuerys, solicitudes, currentPage]);
+	}, [
+		solQuerys,
+		solTerminadasQuerys,
+		solicitudes,
+		solicitudesTerm,
+		currentPage,
+		a,
+	]);
+
+	useEffect(() => {
+		setSolicitudes('');
+		setSolicitudesTerm('');
+		setSolTerminadasQuerys('');
+		setsolQuerys('');
+	}, [a]);
 
 	return (
 		<>
@@ -303,26 +483,21 @@ export const Solicitudes = () => {
 			{(role === 1 || role === 3) && (
 				<>
 					<h4 className='mx-5'>
-						Filtrar
-						{mostrarQ ? (
-							<IconContext.Provider value={{ size: '30' }}>
-								<button
-									className='border-0 bg-transparent m-2'
-									onClick={() => verQuery()}
-								>
+						<button
+							className='border-0 bg-transparent m-2'
+							onClick={() => verQuery()}
+						>
+							Filtrar
+							{mostrarQ ? (
+								<IconContext.Provider value={{ size: '30' }}>
 									<BsChevronUp />
-								</button>
-							</IconContext.Provider>
-						) : (
-							<IconContext.Provider value={{ size: '30' }}>
-								<button
-									className='border-0 bg-transparent m-2'
-									onClick={() => verQuery()}
-								>
+								</IconContext.Provider>
+							) : (
+								<IconContext.Provider value={{ size: '30' }}>
 									<BsChevronDown />
-								</button>
-							</IconContext.Provider>
-						)}
+								</IconContext.Provider>
+							)}
+						</button>
 						<IconContext.Provider value={{ size: '30' }}>
 							<button
 								className='border-0 bg-transparent m-2'
@@ -398,9 +573,10 @@ export const Solicitudes = () => {
 									<div className='m-2 col-sm'>
 										<label className=''>Folio:</label>
 										<input
+											type='number'
 											className='form-control'
-											name='Folio_Completo'
-											value={formik.values.Folio_Completo}
+											name='Folio'
+											value={formik.values.Folio}
 											onChange={formik.handleChange}
 										></input>
 									</div>
@@ -427,18 +603,39 @@ export const Solicitudes = () => {
 								<div className='m-3 row text-white'>
 									<div className='m-2 col-sm'>
 										<label className=''>Fecha Inicial:</label>
-										<input className='form-control'></input>
+										<Datepicker
+											className='form-control'
+											selected={fecha1}
+											onChange={(date) => setFecha1(date)}
+											dateFormat='dd/MM/yyyy'
+										/>
 									</div>
 									<div className='m-2 col-sm'>
 										<label className=''>Fecha Final:</label>
-										<input className='form-control'></input>
+										<Datepicker
+											className='form-control'
+											selected={fecha2}
+											onChange={(date) => setFecha2(date)}
+											dateFormat='dd/MM/yyyy'
+										/>
 									</div>
 									<div className='m-2 col-sm'>
 										<button type='submit' className='btn btn-primary m-2'>
 											Buscar
 										</button>
-										<button type='button' className='btn btn-primary m-2'>
+										<button
+											type='button'
+											className='btn btn-primary m-2'
+											onClick={() => descargarVarias()}
+										>
 											Descargar Solicitudes
+										</button>
+										<button
+											type='button'
+											className='btn btn-primary m-2'
+											onClick={() => descargarVariasOrd()}
+										>
+											Descargar Ordenes
 										</button>
 									</div>
 								</div>
@@ -448,21 +645,24 @@ export const Solicitudes = () => {
 				</>
 			)}
 
-			{!!solicitudes && a === 1 ? (
+			{!!solicitudes && a === 1 && (
 				<>
 					<TablaSolicitudes solicitudes={currentPosts} cargando={cargando} />
 					<Paginacion
 						postPerPage={postPerPage}
-						totalPosts={solicitudes.length}
+						totalPosts={!!q ? solQuerys.length : solicitudes.length}
 						paginar={paginar}
 					/>
 				</>
-			) : (
+			)}
+			{!!solicitudesTerm && a === 2 && (
 				<>
 					<TablaTerminadas solicitudes={currentPosts} cargando={cargando} />
 					<Paginacion
 						postPerPage={postPerPage}
-						totalPosts={solicitudes.length}
+						totalPosts={
+							!q ? solicitudesTerm.length : solTerminadasQuerys.length
+						}
 						paginar={paginar}
 					/>
 				</>

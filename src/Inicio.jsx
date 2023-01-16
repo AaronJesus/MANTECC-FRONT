@@ -1,7 +1,15 @@
 import React from 'react';
+import Swal from 'sweetalert2';
 import { Navbar } from './components/Navbar';
 
 export const Inicio = () => {
+	const acercaDe = () => {
+		Swal.fire(
+			'Acerca de',
+			'Desarrollado por Aaron Jesus Robles Rodriguez de la carrera de Ingenieria en Sistemas Computacionales, Este sitio web asi como el servidor y la base de datos es parte de un proyecto de residencias para el Centro de Computo Administrativo del Instituto Tecnologico de Hermosillo (ITH), para cualquier otra duda presentarse al al mismo.'
+		);
+	};
+
 	return (
 		<>
 			<Navbar />
@@ -25,6 +33,15 @@ export const Inicio = () => {
 					Administracion del servicio del computo, o si no esta en el sistema
 					favor de reportarse al mismo.
 				</h4>
+				<br />
+				<div className='float-end mt-5'>
+					<button
+						className='btn btn-sm btn-outline-light'
+						onClick={() => acercaDe()}
+					>
+						Acerca de
+					</button>
+				</div>
 			</div>
 		</>
 	);

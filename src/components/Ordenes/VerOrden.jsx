@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Datepicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Moment from 'moment';
@@ -7,16 +7,19 @@ import ith_logo from '../../assets/ith_logo.jpg';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { IconContext } from 'react-icons';
 import { useFormik } from 'formik';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 
 export const VerOrden = () => {
+	const nav = useNavigate();
 	const [date, setDate] = useState('');
 	const [vals, setVals] = useState();
 	const [verEdit, setVerEdit] = useState(false);
 	const [verSug, setVerSug] = useState(false);
-	const [numC, setNumC] = useState();
-	const [nuevoC, setNuevoC] = useState();
+	const [periodo, setPeriodo] = useState();
 	const [prob, setProb] = useState();
 	const [rev, setRev] = useState();
+	const [submit, setsubmit] = useState(false);
 
 	const { id } = useParams();
 
@@ -25,10 +28,14 @@ export const VerOrden = () => {
 			//3 es el numero de la revision
 			const dataConf = await fetch(`http://localhost:4000/configs`);
 			const resC = await dataConf.json();
-			!!resC && setRev(resC[2]);
-			!!resC && setNumC(resC[0].Valor);
-			!!resC && setNuevoC(parseInt(resC[0].Valor) + 1);
+			!!resC && setRev(resC[1]);
+			!!resC && setPeriodo(resC[0].Valor);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un problema al cargar ciertos campos',
+				'Error',
+				3000
+			);
 			console.log(error);
 			console.log('Trono get Data');
 		}
@@ -40,6 +47,11 @@ export const VerOrden = () => {
 			const res = await data.json();
 			!!res && setProb(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un problema al cargar las sugerencias',
+				'Error',
+				3000
+			);
 			console.error('Cant get prob ' + error);
 		}
 	};
@@ -68,6 +80,11 @@ export const VerOrden = () => {
 				formik.setFieldValue('No_Control', res[0].No_Control);
 			}
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un problema al cargar los datos de la orden',
+				'Error',
+				3000
+			);
 			console.error('Cant get data ' + error);
 		}
 	};
@@ -145,6 +162,7 @@ export const VerOrden = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
+			setsubmit(true);
 			let req;
 			if (!!values.ProblemaCheck) {
 				if (!!values.ProblemaCheck.length === 0) {
@@ -160,55 +178,50 @@ export const VerOrden = () => {
 			} else if (!!values.Trabajo_Realizado) {
 				req = formik.values.Trabajo_Realizado;
 			}
-			try {
-				if (!formik.values.No_Control) {
-					const data = await fetch(`http://localhost:4000/orden/${id}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Trabajo_Realizado: req,
-							Mantenimiento_Interno: parseInt(
-								formik.values.Mantenimiento_Interno
-							),
-							Tipo_Servicio: formik.values.Tipo_Servicio,
-							Asignado_a: formik.values.Asignado_a,
-							Fecha_Realizacion: date,
-							No_Control: !!numC && numC,
-						}),
-					});
-					await data.json();
-					const NumC = await fetch(`http://localhost:4000/config/1`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							idConfig: '1',
-							Valor: !!nuevoC && nuevoC.toString(),
-						}),
-					});
-					await NumC.json();
-				} else {
-					const data = await fetch(`http://localhost:4000/orden/${id}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Trabajo_Realizado: req,
-							Mantenimiento_Interno: parseInt(
-								formik.values.Mantenimiento_Interno
-							),
-							Tipo_Servicio: formik.values.Tipo_Servicio,
-							Asignado_a: formik.values.Asignado_a,
-							Fecha_Realizacion: date,
-							No_Control: formik.values.No_Control,
-						}),
-					});
-					await data.json();
+			let work = req.slice(0, 200);
+			if (!submit) {
+				try {
+					if (!formik.values.No_Control) {
+						const data = await fetch(`http://localhost:4000/orden/${id}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Trabajo_Realizado: work,
+								Mantenimiento_Interno: parseInt(
+									formik.values.Mantenimiento_Interno
+								),
+								Tipo_Servicio: formik.values.Tipo_Servicio,
+								Asignado_a: formik.values.Asignado_a,
+								Fecha_Realizacion: date,
+								idPeriodo: !!periodo && periodo,
+							}),
+						});
+						await data.json();
+					} else {
+						const data = await fetch(`http://localhost:4000/orden/${id}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Trabajo_Realizado: req,
+								Mantenimiento_Interno: parseInt(
+									formik.values.Mantenimiento_Interno
+								),
+								Tipo_Servicio: formik.values.Tipo_Servicio,
+								Asignado_a: formik.values.Asignado_a,
+								Fecha_Realizacion: date,
+							}),
+						});
+						await data.json();
+					}
+					setsubmit(false);
+					setVerEdit(!verEdit);
+					Swal.fire('Orden actualizada');
+					nav('/solicitudes');
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un problema al actualizar la orden');
+					console.log(error);
 				}
-				setVerEdit(!verEdit);
-				window.alert('Liston');
-			} catch (error) {
-				window.alert('Trono krnal');
-				setVerEdit(!verEdit);
-				console.log(error);
 			}
 		},
 	});
@@ -217,7 +230,7 @@ export const VerOrden = () => {
 		getDatos();
 		getRev();
 		getProb();
-	}, [setRev, setNumC, setNuevoC]);
+	}, [setRev, setPeriodo]);
 
 	return (
 		<>
@@ -308,6 +321,7 @@ export const VerOrden = () => {
 									type='text'
 									className=' form-control m-3 w-75'
 									name='Tipo_Servicio'
+									maxLength={50}
 									value={formik.values.Tipo_Servicio}
 									onChange={formik.handleChange}
 									onBlur={formik.handleBlur}
@@ -326,15 +340,11 @@ export const VerOrden = () => {
 									className='w-25 m-3 form-control'
 									disabled={!verEdit}
 									name='Asignado_a'
+									maxLength={100}
 									onChange={formik.handleChange}
 									onBlur={formik.handleBlur}
 									value={formik.values.Asignado_a}
 								/>
-								{/* <select className='w-25 m-3 form-control' disabled={!verEdit}>
-								<option>Ray Nuztas</option>
-								<option>Alumno Servicio 1</option>
-								<option>Alumno Servicio 2</option>
-							</select> */}
 								{!!formik.touched.Asignado_a && !!formik.errors.Asignado_a && (
 									<label className='text-danger mx-3 w-50'>
 										*{formik.errors.Asignado_a}
@@ -367,6 +377,9 @@ export const VerOrden = () => {
 								<label className='m-3 mb-0 col-form-label'>
 									Trabajo Realizado:
 								</label>
+								<label className='mx-2 text-secondary'>
+									*Maximo 200 Caracteres
+								</label>
 								<div></div>
 								{verEdit && (
 									<>
@@ -397,23 +410,26 @@ export const VerOrden = () => {
 													prob.map((p) => {
 														return (
 															<div
-																className='mx-3 w-25 form-check form-check-inline'
+																className='d-inline-block w-50 input-group mb-3'
 																key={p.idProblema}
 															>
-																<input
-																	className='form-check-input'
-																	type='checkbox'
-																	name='ProblemaCheck'
-																	value={p.Descripcion}
-																	checked={formik.values.ProblemaCheck.includes(
-																		p.Descripcion
-																	)}
-																	onChange={formik.handleChange}
-																	onBlur={formik.handleBlur}
-																/>
-																<label className='form-check-label'>
-																	{p.Descripcion}
-																</label>
+																<div className='input-group-prepend'>
+																	<div className='input-group mx-3'>
+																		<input
+																			type='checkbox'
+																			name='ProblemaCheck'
+																			value={p.Descripcion}
+																			checked={formik.values.ProblemaCheck.includes(
+																				p.Descripcion
+																			)}
+																			onChange={formik.handleChange}
+																			onBlur={formik.handleBlur}
+																		/>
+																		<label className='form-check-label mx-1'>
+																			{p.Descripcion}
+																		</label>
+																	</div>
+																</div>
 															</div>
 														);
 													})}
@@ -428,6 +444,7 @@ export const VerOrden = () => {
 									className='form-control m-3 w-75'
 									readOnly={!verEdit}
 									name='Trabajo_Realizado'
+									maxLength={200}
 									value={
 										!!formik.values.Trabajo_Realizado
 											? formik.values.Trabajo_Realizado
@@ -586,7 +603,7 @@ export const VerOrden = () => {
 					</div>
 				</div>
 				{(!!vals && vals.Calificacion_Servicio) ||
-				!!formik.values.No_Control ? (
+				!!formik.values.Trabajo_Realizado ? (
 					''
 				) : (
 					<div className='container d-flex justify-content-center my-3'>

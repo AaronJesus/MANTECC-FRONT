@@ -1,8 +1,12 @@
 import { useFormik } from 'formik';
-import { useEffect } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NotificationManager } from 'react-notifications';
+import Swal from 'sweetalert2';
 
 export const EditarUsuario = () => {
+	const [submit, setsubmit] = useState(false);
+	const nav = useNavigate();
 	const { rfc } = useParams();
 	const formik = useFormik({
 		initialValues: {
@@ -10,6 +14,7 @@ export const EditarUsuario = () => {
 			Contraseña: '',
 			Contraseña2: '',
 			id_Usuario: '',
+			RFC2: '',
 		},
 		validate: (values) => {
 			const errors = {};
@@ -31,36 +36,46 @@ export const EditarUsuario = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				if (!!values.Contraseña) {
-					const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							RFC: rfc,
-							Contraseña: values.Contraseña,
-							Nombres: values.Nombres,
-							id_Usuario: values.id_Usuario,
-						}),
-					});
-					await data.json();
-				} else {
-					const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							RFC: rfc,
-							Nombres: values.Nombres,
-							id_Usuario: values.id_Usuario,
-						}),
-					});
-					await data.json();
-				}
+			setsubmit(true);
 
-				window.location.reload(false);
-			} catch (error) {
-				console.log(error);
-				console.log('Trono new user');
+			if (!submit) {
+				try {
+					if (!!values.Contraseña) {
+						const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								RFC: rfc,
+								RFC2: values.RFC2,
+								Contraseña: values.Contraseña,
+								Nombres: values.Nombres,
+								id_Usuario: values.id_Usuario,
+							}),
+						});
+						await data.json();
+					} else {
+						const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								RFC: rfc,
+								RFC2: values.RFC2,
+								Nombres: values.Nombres,
+								id_Usuario: values.id_Usuario,
+							}),
+						});
+						await data.json();
+					}
+					setsubmit(false);
+
+					Swal.fire('Usuario actualizado!');
+					nav('/usuarios');
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log(error);
+					console.log('Trono edit user');
+				}
 			}
 		},
 	});
@@ -71,7 +86,13 @@ export const EditarUsuario = () => {
 			const res = await data.json();
 			!!res[0] && formik.setFieldValue('Nombres', res[0].Nombres);
 			formik.setFieldValue('id_Usuario', res[0].id_Usuario);
+			formik.setFieldValue('RFC2', rfc);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al recuperar la informacion',
+				'Error',
+				3000
+			);
 			console.log('Trono get datos');
 			console.log(error);
 		}
@@ -93,8 +114,9 @@ export const EditarUsuario = () => {
 						<input
 							type='text'
 							className='form-control w-50'
+							name='RFC2'
+							value={formik.values.RFC2}
 							disabled
-							value={rfc}
 						/>
 
 						<label className='mx-3 col-form-label w-25'>Tipo de usuario:</label>
@@ -115,6 +137,7 @@ export const EditarUsuario = () => {
 							type='text'
 							className='form-control'
 							name='Nombres'
+							maxLength='100'
 							value={formik.values.Nombres}
 							onChange={formik.handleChange}
 							onBlur={formik.handleBlur}

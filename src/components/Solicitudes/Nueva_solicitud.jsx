@@ -6,7 +6,9 @@ import ith_logo from '../../assets/ith_logo.jpg';
 import { useFormik } from 'formik';
 import jwtDecode from 'jwt-decode';
 import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 import { useNavigate } from 'react-router-dom';
+import 'react-notifications/lib/notifications.css';
 
 export const NuevaSolicitud = () => {
 	const [verSug, setVerSug] = useState(false);
@@ -14,7 +16,8 @@ export const NuevaSolicitud = () => {
 	const [areas, setAreas] = useState();
 	const [prob, setProb] = useState();
 	const [rev, setRev] = useState();
-
+	const [submit, setsubmit] = useState(false);
+	const [role, setrole] = useState();
 	const nav = useNavigate();
 	const token = sessionStorage.getItem('token');
 
@@ -23,6 +26,7 @@ export const NuevaSolicitud = () => {
 			const user = jwtDecode(token);
 
 			if (!!user) {
+				setrole(user.id_Usuario);
 				formik.setFieldValue('RFC', user.RFC);
 				formik.setFieldValue('Nombres', user.Nombres);
 			}
@@ -43,6 +47,11 @@ export const NuevaSolicitud = () => {
 			const res = await data.json();
 			setAreas(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudieron cargar las areas',
+				'Error',
+				3000
+			);
 			console.error('Get Areas ' + error);
 		}
 	};
@@ -53,23 +62,33 @@ export const NuevaSolicitud = () => {
 			const res = await data.json();
 			!!res && setProb(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudieron cargar las sugerencias',
+				'Error',
+				3000
+			);
 			console.error('Cant get prob ' + error);
 		}
 	};
-
 	const getRev = async () => {
 		try {
 			const dataConf = await fetch(`http://localhost:4000/configs`);
 			const resC = await dataConf.json();
-			!!resC && formik.setFieldValue('idPeriodo', resC[1].Valor);
-			!!resC && setRev(resC[2]); //el 3er campo es la revision
-			!!resC && formik.setFieldValue('Asignado_a', resC[3].Valor); //el 4to es de asignado a
-			!!resC && formik.setFieldValue('Aprobado_Por', resC[4].Valor); //el 5to es de Aprobado por
+			!!resC && formik.setFieldValue('idPeriodo', resC[0].Valor);
+			!!resC && setRev(resC[1]); //el 3er campo es la revision
+			!!resC && formik.setFieldValue('Asignado_a', resC[2].Valor); //el 4to es de asignado a
+			!!resC && formik.setFieldValue('Aprobado_Por', resC[3].Valor); //el 5to es de Aprobado por
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al cargar ciertos campos',
+				'Error',
+				3000
+			);
 			console.log(error);
 			console.log('Trono get Data');
 		}
 	};
+
 	const formik = useFormik({
 		initialValues: {
 			idPeriodo: '',
@@ -127,6 +146,7 @@ export const NuevaSolicitud = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
+			setsubmit(true);
 			let req;
 			if (!!values.ProblemaCheck) {
 				if (!!values.ProblemaCheck.length === 0) {
@@ -142,36 +162,34 @@ export const NuevaSolicitud = () => {
 			} else if (!!values.Descripcion_Servicio_Falla) {
 				req = formik.values.Descripcion_Servicio_Falla;
 			}
-			try {
-				const valid = await fetch(
-					`http://localhost:4000/solicitudRFC/${values.RFC}`
-				);
-				const res = await valid.json();
-				if (res.length > 0) {
-					Swal.fire('Tiene una solicitud pendiente');
-					return;
+			let work = req.slice(0, 200);
+			if (!submit) {
+				try {
+					const data = await fetch('http://localhost:4000/solicitudes', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							idPeriodo: values.idPeriodo,
+							RFC: values.RFC,
+							Clave_Area: values.Clave_Area,
+							Nombre_Solicitante: values.Nombres,
+							Descripcion_Servicio_Falla: work,
+							Fecha_Elaboracion: values.Fecha_Elaboracion,
+							Lugar_Especifico: values.Lugar_Especifico,
+							Horario_Atencion: values.Horario_Atencion,
+							Asignado_a: values.Asignado_a,
+							Aprobado_Por: values.Aprobado_Por,
+						}),
+					});
+					await data.json();
+					Swal.fire('Solicitud Enviada!');
+					nav('/solicitudes');
+					setsubmit(false);
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error con la conexion al enviar la solicitud');
+					console.error('Send solicitud ' + error);
 				}
-				const data = await fetch('http://localhost:4000/solicitudes', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						idPeriodo: values.idPeriodo,
-						RFC: values.RFC,
-						Clave_Area: values.Clave_Area,
-						Nombre_Solicitante: values.Nombres,
-						Descripcion_Servicio_Falla: req,
-						Fecha_Elaboracion: values.Fecha_Elaboracion,
-						Lugar_Especifico: values.Lugar_Especifico,
-						Horario_Atencion: values.Horario_Atencion,
-						Asignado_a: values.Asignado_a,
-						Aprobado_Por: values.Aprobado_Por,
-					}),
-				});
-				await data.json();
-				Swal.fire('Solicitud Enviada!');
-				nav('/solicitudes');
-			} catch (error) {
-				console.error('Send solicitud ' + error);
 			}
 		},
 	});
@@ -275,6 +293,9 @@ export const NuevaSolicitud = () => {
 								<label className='m-3 mb-0 col-form-label'>
 									Descripcion del servicio solicitado o falla a reparar:
 								</label>
+								<label className='mx-2 text-secondary'>
+									*Maximo 200 Caracteres
+								</label>
 								<div></div>
 								<div className='m-3 my-0'>
 									<button
@@ -301,23 +322,26 @@ export const NuevaSolicitud = () => {
 											prob.map((p) => {
 												return (
 													<div
-														className='mx-3 w-25 form-check form-check-inline'
+														className='d-inline-block w-auto input-group mb-3'
 														key={p.idProblema}
 													>
-														<input
-															className='form-check-input'
-															type='checkbox'
-															name='ProblemaCheck'
-															value={p.Descripcion}
-															onChange={formik.handleChange}
-															onBlur={formik.handleBlur}
-															checked={formik.values.ProblemaCheck.includes(
-																p.Descripcion
-															)}
-														/>
-														<label className='form-check-label'>
-															{p.Descripcion}
-														</label>
+														<div className='input-group-prepend'>
+															<div className='input-group mx-3'>
+																<input
+																	type='checkbox'
+																	name='ProblemaCheck'
+																	value={p.Descripcion}
+																	checked={formik.values.ProblemaCheck.includes(
+																		p.Descripcion
+																	)}
+																	onChange={formik.handleChange}
+																	onBlur={formik.handleBlur}
+																/>
+																<label className='form-check-label mx-1'>
+																	{p.Descripcion}
+																</label>
+															</div>
+														</div>
 													</div>
 												);
 											})}
@@ -331,6 +355,7 @@ export const NuevaSolicitud = () => {
 									className='form-control m-3 w-75'
 									name='Descripcion_Servicio_Falla'
 									id='Descripcion_Servicio_Falla'
+									maxLength='200'
 									value={formik.values.Descripcion_Servicio_Falla}
 									onBlur={formik.handleBlur}
 									onChange={formik.handleChange}
@@ -351,6 +376,7 @@ export const NuevaSolicitud = () => {
 									className='form-control m-3 w-75 mt-0'
 									name='Lugar_Especifico'
 									id='Lugar_Especifico'
+									maxLength='200'
 									value={formik.values.Lugar_Especifico}
 									onBlur={formik.handleBlur}
 									onChange={formik.handleChange}
@@ -370,6 +396,7 @@ export const NuevaSolicitud = () => {
 									className='form-control m-3 w-75 mt-0'
 									name='Horario_Atencion'
 									id='Horario_Atencion'
+									maxLength='100'
 									value={formik.values.Horario_Atencion}
 									onBlur={formik.handleBlur}
 									onChange={formik.handleChange}
@@ -384,12 +411,13 @@ export const NuevaSolicitud = () => {
 						</div>
 					</div>
 				</div>
-
-				<div className='container d-flex justify-content-center my-3'>
-					<button className='btn btn-warning btn-lg m-2' type='submit'>
-						Enviar
-					</button>
-				</div>
+				{role === 2 && (
+					<div className='container d-flex justify-content-center my-3'>
+						<button className='btn btn-warning btn-lg m-2' type='submit'>
+							Enviar
+						</button>
+					</div>
+				)}
 			</form>
 		</>
 	);

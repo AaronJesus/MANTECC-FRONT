@@ -8,18 +8,13 @@ import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 export const TablaAlumnos = ({ users, cargando }) => {
-	const [alum, setAlum] = useState();
 	const [carr, setCarr] = useState();
-	const [estcheck, setEstchek] = useState(true);
 
 	const getData = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/alumnos');
 			const info = await fetch('http://localhost:4000/carreras');
 			const resInfo = await info.json();
-			const res = await data.json();
 			setCarr(resInfo);
-			setAlum(res[1]);
 		} catch (error) {
 			console.log('Trono get');
 			console.log(error);
@@ -46,7 +41,6 @@ export const TablaAlumnos = ({ users, cargando }) => {
 							}),
 						}
 					);
-					setEstchek(!estcheck);
 					await data.json();
 
 					window.location.reload(false);
@@ -73,7 +67,6 @@ export const TablaAlumnos = ({ users, cargando }) => {
 						method: 'DELETE',
 					});
 					await data.json();
-					setEstchek(!estcheck);
 
 					window.location.reload(false);
 				} catch (error) {
@@ -86,52 +79,45 @@ export const TablaAlumnos = ({ users, cargando }) => {
 
 	useEffect(() => {
 		getData();
-	}, [setAlum, setCarr, estcheck]);
+	}, [setCarr]);
+
+	if (cargando) {
+		return (
+			<h1 className='d-flex justify-content-center'>Cargando alumnos...</h1>
+		);
+	}
 
 	return (
 		<>
-			<div className='d-flex m-5 my-0 justify-content-center '>
-				<table className='table table-sm table-hover text-center align-middle'>
-					<thead className='bg-blue text-white align-middle'>
-						<tr>
-							<th scope='col'>RFC</th>
-							<th scope='col'>Nombre completo</th>
-							<th scope='col'>Numero de control</th>
-							<th scope='col'>Nombre de carrera</th>
-							<th scope='col'>Estado</th>
-							<th scope='col'>Opciones</th>
-						</tr>
-					</thead>
-					<tbody className='bg-white'>
-						{!!users &&
-							!!alum &&
-							users.map((user) => {
+			<div className='d-flex m-3 mx-5 justify-content-center '>
+				{!!users && users.length !== 0 ? (
+					<table className='table table-sm table-hover text-center align-middle'>
+						<thead className='bg-blue text-white align-middle'>
+							<tr>
+								<th scope='col'>RFC</th>
+								<th scope='col'>Nombre completo</th>
+								<th scope='col'>Numero de control</th>
+								<th scope='col'>Nombre de carrera</th>
+								<th scope='col'>Estado</th>
+								<th scope='col'>Opciones</th>
+							</tr>
+						</thead>
+						<tbody className='bg-white'>
+							{users.map((user) => {
 								return (
 									<tr key={user.RFC}>
 										<td>{user.RFC}</td>
 										<td>{user.Nombres}</td>
+										<td>{user.No_Control}</td>
 										<td>
-											{alum
-												.filter((al) => al.RFC === user.RFC)
-												.map((a) => {
-													return a.No_Control;
-												})}
-										</td>
-										<td>
-											{alum
-												.filter((al) => al.RFC === user.RFC)
-												.map((a) => {
-													return (
-														!!carr &&
-														carr
-															.filter(
-																(car) => car.Clave_Carrera === a.Clave_Carrera
-															)
-															.map((c) => {
-																return c.Nombre_Reducido;
-															})
-													);
-												})}
+											{!!carr &&
+												carr
+													.filter(
+														(car) => car.Clave_Carrera === user.Clave_Carrera
+													)
+													.map((c) => {
+														return c.Nombre_Reducido;
+													})}
 										</td>
 										<td>
 											{user.Estatus === true ? (
@@ -177,8 +163,11 @@ export const TablaAlumnos = ({ users, cargando }) => {
 									</tr>
 								);
 							})}
-					</tbody>
-				</table>
+						</tbody>
+					</table>
+				) : (
+					<h1>No hay alumnos para mostrar</h1>
+				)}
 			</div>
 		</>
 	);

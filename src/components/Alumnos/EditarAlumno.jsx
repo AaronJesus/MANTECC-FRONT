@@ -1,9 +1,13 @@
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 
 export const EditarAlumno = () => {
+	const nav = useNavigate();
 	const { rfc } = useParams();
+	const [submit, setsubmit] = useState(false);
 	const [carr, setCarr] = useState();
 
 	const formik = useFormik({
@@ -13,6 +17,7 @@ export const EditarAlumno = () => {
 			Nombres: '',
 			No_Control: '',
 			Clave_Carrera: '',
+			RFC2: '',
 		},
 		validate: (values) => {
 			const errors = {};
@@ -40,36 +45,43 @@ export const EditarAlumno = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				if (!!values.Contraseña) {
-					const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Contraseña: values.Contraseña,
-							Nombres: values.Nombres,
-							No_Control: values.No_Control.toString(),
-							Clave_Carrera: values.Clave_Carrera,
-						}),
-					});
-					await data.json();
-				} else {
-					const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Nombres: values.Nombres,
-							No_Control: values.No_Control.toString(),
-							Clave_Carrera: values.Clave_Carrera,
-						}),
-					});
-					await data.json();
-				}
+			setsubmit(true);
 
-				window.location.reload(false);
-			} catch (error) {
-				console.log('Trono submit');
-				console.log(error);
+			if (!submit) {
+				try {
+					if (!!values.Contraseña) {
+						const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Contraseña: values.Contraseña,
+								Nombres: values.Nombres,
+								No_Control: values.No_Control.toString(),
+								Clave_Carrera: values.Clave_Carrera,
+							}),
+						});
+						await data.json();
+					} else {
+						const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Nombres: values.Nombres,
+								No_Control: values.No_Control.toString(),
+								Clave_Carrera: values.Clave_Carrera,
+							}),
+						});
+						await data.json();
+					}
+					setsubmit(false);
+					Swal.fire('Alumno actualizado!');
+					nav('/alumnos');
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log('Trono submit');
+					console.log(error);
+				}
 			}
 		},
 	});
@@ -82,9 +94,15 @@ export const EditarAlumno = () => {
 			const resInfo = await info.json();
 			!!resInfo && setCarr(resInfo);
 			!!res && formik.setFieldValue('Nombres', res[0][0].Nombres);
-			formik.setFieldValue('No_Control', res[1][0].No_Control);
-			formik.setFieldValue('Clave_Carrera', res[1][0].Clave_Carrera);
+			formik.setFieldValue('No_Control', res[0][0].No_Control);
+			formik.setFieldValue('Clave_Carrera', res[0][0].Clave_Carrera);
+			formik.setFieldValue('RFC2', rfc);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al descargar la informacion',
+				'Error',
+				3000
+			);
 			console.log('Trono get');
 			console.log(error);
 		}
@@ -116,6 +134,7 @@ export const EditarAlumno = () => {
 							type='text'
 							className='form-control'
 							name='Nombres'
+							maxLength='100'
 							value={formik.values.Nombres}
 							onChange={formik.handleChange}
 							onBlur={formik.handleBlur}
@@ -136,7 +155,7 @@ export const EditarAlumno = () => {
 						/>
 
 						<label className='mx-3 col-form-label w-25'>
-							Clave y nombre de la carrera:
+							Nombre de la carrera:
 						</label>
 						<select
 							className='form-control w-50'

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { NotificationManager } from 'react-notifications';
 
 export const Configs = () => {
 	const [configs, setConfigs] = useState();
@@ -15,6 +16,11 @@ export const Configs = () => {
 			const resP = await dataP.json();
 			setPeriodo(resP);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al descargar las configuraciones',
+				'Error',
+				3000
+			);
 			console.log(error);
 			console.log('Trono get data');
 		}
@@ -30,7 +36,7 @@ export const Configs = () => {
 				<h1>Configuraciones</h1>
 			</div>
 			<div className='container'>
-				{!!configs &&
+				{!!configs ? (
 					configs.map((c) => {
 						return (
 							<div key={c.idConfig} className='d-flex m-3'>
@@ -69,7 +75,12 @@ export const Configs = () => {
 								</NavLink>
 							</div>
 						);
-					})}
+					})
+				) : (
+					<h1 className='d-flex justify-content-center'>
+						No se recuperaron Configuraciones
+					</h1>
+				)}
 			</div>
 		</>
 	);

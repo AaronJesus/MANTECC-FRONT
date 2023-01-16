@@ -18,6 +18,7 @@ import { NuevoUsuario } from '../components/Usuarios/NuevoUsuario';
 import { EditarConf } from '../components/Extras/EditarConf';
 import { useEffect, useState } from 'react';
 import jwtDecode from 'jwt-decode';
+import { NotificationContainer } from 'react-notifications';
 
 export const DashboardRoutes = () => {
 	const token = sessionStorage.getItem('token');
@@ -81,6 +82,7 @@ export const DashboardRoutes = () => {
 					)}
 				</Routes>
 			</div>
+			<NotificationContainer />
 			<div className='mt-5'></div>
 		</>
 	);

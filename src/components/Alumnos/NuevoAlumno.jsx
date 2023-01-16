@@ -2,9 +2,13 @@ import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 
 export const NuevoAlumno = () => {
+	const [submit, setsubmit] = useState(false);
 	const [carreras, setCarreras] = useState();
+
 	const formik = useFormik({
 		initialValues: {
 			RFC: '',
@@ -45,23 +49,36 @@ export const NuevoAlumno = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch('http://localhost:4000/alumnos', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						RFC: values.RFC,
-						Contraseña: values.Contraseña,
-						Nombres: values.Nombres,
-						No_Control: values.No_Control,
-						Clave_Carrera: values.Clave_Carrera,
-					}),
-				});
-				await data.json();
-				window.location.reload(false);
-			} catch (error) {
-				console.log('Trono submit');
-				console.log(error);
+			setsubmit(true);
+
+			if (!submit) {
+				try {
+					const data = await fetch('http://localhost:4000/alumnos', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							RFC: values.RFC,
+							Contraseña: values.Contraseña,
+							Nombres: values.Nombres,
+							No_Control: values.No_Control,
+							Clave_Carrera: values.Clave_Carrera,
+						}),
+					});
+					const res = await data.json();
+					console.log(res);
+					setsubmit(false);
+					if (!!res.msg) {
+						Swal.fire(res.msg);
+					} else {
+						Swal.fire('Nuevo alumno!');
+						window.location.reload(false);
+					}
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log('Trono submit');
+					console.log(error);
+				}
 			}
 		},
 	});
@@ -72,6 +89,11 @@ export const NuevoAlumno = () => {
 			const res = await data.json();
 			setCarreras(res);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al descargar las carreras',
+				'Error',
+				3000
+			);
 			console.log('trono carr');
 			console.log(error);
 		}
@@ -108,6 +130,7 @@ export const NuevoAlumno = () => {
 							type='text'
 							className='form-control'
 							name='Nombres'
+							maxLength='100'
 							value={formik.values.Nombres}
 							onChange={formik.handleChange}
 							onBlur={formik.handleBlur}

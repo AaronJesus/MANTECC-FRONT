@@ -1,12 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/NavbarStyles.css';
-import { useState } from 'react';
 import Swal from 'sweetalert2';
 
 export const TablaProblemas = ({ prob, cargando }) => {
-	const [estcheck, setEstchek] = useState(true);
-
 	const handleDel = async (idP) => {
 		Swal.fire({
 			title: 'Seguro que desea eliminar el problema?',
@@ -22,7 +19,7 @@ export const TablaProblemas = ({ prob, cargando }) => {
 						method: 'DELETE',
 					});
 					await data.json();
-					setEstchek(!estcheck);
+					window.location.reload(false);
 				} catch (error) {
 					console.log(error);
 					console.log('trono delete');
@@ -30,24 +27,27 @@ export const TablaProblemas = ({ prob, cargando }) => {
 			}
 		});
 	};
+
 	if (cargando) {
-		return <h1>Cargando problemas</h1>;
+		return (
+			<h1 className='d-flex justify-content-center'>Cargando problemas...</h1>
+		);
 	}
 
 	return (
 		<>
-			<div className='d-flex m-5 my-0 justify-content-center '>
-				<table className='table table-sm table-hover text-center align-middle'>
-					<thead className='bg-blue text-white'>
-						<tr>
-							<th scope='col'>Descripcion</th>
-							<th scope='col'>Tipo de problema</th>
-							<th scope='col'>Opciones</th>
-						</tr>
-					</thead>
-					<tbody className='bg-white'>
-						{!!prob &&
-							prob.map((problema) => {
+			<div className='d-flex m-3 mx-5 justify-content-center '>
+				{!!prob && prob.length ? (
+					<table className='table table-sm table-hover text-center align-middle'>
+						<thead className='bg-blue text-white'>
+							<tr>
+								<th scope='col'>Descripcion</th>
+								<th scope='col'>Tipo de problema</th>
+								<th scope='col'>Opciones</th>
+							</tr>
+						</thead>
+						<tbody className='bg-white'>
+							{prob.map((problema) => {
 								return (
 									<tr key={problema.idProblema}>
 										<td>{problema.Descripcion}</td>
@@ -69,8 +69,11 @@ export const TablaProblemas = ({ prob, cargando }) => {
 									</tr>
 								);
 							})}
-					</tbody>
-				</table>
+						</tbody>
+					</table>
+				) : (
+					<h1>No hay problemas para mostrar</h1>
+				)}
 			</div>
 		</>
 	);

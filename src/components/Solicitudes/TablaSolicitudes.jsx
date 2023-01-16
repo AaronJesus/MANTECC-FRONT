@@ -6,6 +6,7 @@ import { FcCheckmark, FcCancel } from 'react-icons/fc';
 import { useState, useEffect } from 'react';
 import { saveAs } from 'file-saver';
 import jwtDecode from 'jwt-decode';
+import Swal from 'sweetalert2';
 
 export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 	const [role, setRole] = useState();
@@ -37,16 +38,54 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 		}
 	};
 
-	const downloadSol = async () => {
+	const handleDel = async (idP) => {
+		Swal.fire({
+			title: 'Seguro que desea eliminar la solicitud?',
+			showDenyButton: true,
+			showConfirmButton: false,
+			showCancelButton: true,
+			cancelButtonText: 'Cancelar',
+			denyButtonText: `Eliminar`,
+		}).then(async (result) => {
+			if (result.isDenied) {
+				try {
+					const data = await fetch(`http://localhost:4000/solicitud/${idP}`, {
+						method: 'DELETE',
+					});
+					await data.json();
+					window.location.reload(false);
+				} catch (error) {
+					console.log(error);
+					console.log('trono delete');
+				}
+			}
+		});
+	};
+
+	const downloadSol = async (Folio) => {
 		try {
-			const data = await fetch('http://localhost:4000/pdfSol', {
+			const data = await fetch(`http://localhost:4000/pdfSol/${Folio}`, {
 				method: 'GET',
 				headers: { 'Content-Type': 'application/pdf' },
 				responseType: 'blob',
 			});
 			const res = await data.blob();
-			saveAs(res, `Solicitud`);
-			console.log(res);
+			saveAs(res, `Solicitud ${Folio}`);
+		} catch (error) {
+			console.log(error);
+			console.log('PDF ni idea');
+		}
+	};
+
+	const downloadOrden = async (Folio) => {
+		try {
+			const data = await fetch(`http://localhost:4000/pdfOrden/${Folio}`, {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/pdf' },
+				responseType: 'blob',
+			});
+			const res = await data.blob();
+			saveAs(res, `Orden ${Folio}`);
 		} catch (error) {
 			console.log(error);
 			console.log('PDF ni idea');
@@ -59,7 +98,9 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 	}, [setEstado, setDptos]);
 
 	if (cargando) {
-		return <h1>Cargando solicitudes...</h1>;
+		return (
+			<h1 className='d-flex justify-content-center'>Cargando solicitudes...</h1>
+		);
 	}
 
 	return (
@@ -80,6 +121,7 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 								<th scope='col'>Aprobado por admin.</th>
 								<th scope='col'>Aprobado por cliente</th>
 								{(role === 1 || role === 3) && <th scope='col'>Editar</th>}
+								{(role === 1 || role === 3) && <th scope='col'>Eliminar</th>}
 							</tr>
 						</thead>
 						<tbody className='bg-white'>
@@ -90,7 +132,7 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 											<IconContext.Provider value={{ size: '40' }}>
 												<button
 													className='border-0 bg-transparent m-2'
-													onClick={() => downloadSol()}
+													onClick={() => downloadSol(sol.Folio_Completo)}
 												>
 													<GrDocumentPdf />
 												</button>
@@ -105,7 +147,10 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 										{(role === 1 || role === 3) && (
 											<td>
 												<IconContext.Provider value={{ size: '40' }}>
-													<button className='border-0 bg-transparent m-2'>
+													<button
+														className='border-0 bg-transparent m-2'
+														onClick={() => downloadOrden(sol.Folio_Completo)}
+													>
 														<GrDocumentPdf />
 													</button>
 												</IconContext.Provider>
@@ -175,6 +220,16 @@ export const TablaSolicitudes = ({ solicitudes, cargando }) => {
 																>
 																	Editar
 																</NavLink>
+															</td>
+														)}
+														{(role === 1 || role === 3) && (
+															<td>
+																<button
+																	className='btn btn-danger mx-3'
+																	onClick={() => handleDel(sol.Folio_Completo)}
+																>
+																	Eliminar
+																</button>
 															</td>
 														)}
 													</>

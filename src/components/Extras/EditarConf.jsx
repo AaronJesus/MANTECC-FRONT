@@ -3,9 +3,11 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 
 export const EditarConf = () => {
 	const { id } = useParams();
+	const [submit, setsubmit] = useState(false);
 	const [configs, setConfigs] = useState();
 	const [users, setUsers] = useState();
 
@@ -23,20 +25,27 @@ export const EditarConf = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch(`http://localhost:4000/config/${id}`, {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						idConfig: id,
-						Valor: values.Valor,
-					}),
-				});
-				await data.json();
-				window.location.reload(false);
-			} catch (error) {
-				console.log(error);
-				console.log('Trono submit');
+			setsubmit(true);
+
+			if (!submit) {
+				try {
+					const data = await fetch(`http://localhost:4000/config/${id}`, {
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							idConfig: id,
+							Valor: values.Valor,
+						}),
+					});
+					await data.json();
+					setsubmit(false);
+					Swal.fire('Configuracion actualizada!');
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log(error);
+					console.log('Trono submit');
+				}
 			}
 		},
 	});
@@ -55,19 +64,27 @@ export const EditarConf = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch(`http://localhost:4000/periodos`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						Periodo: values.Nuevo_P,
-					}),
-				});
-				await data.json();
-				window.location.reload(false);
-			} catch (error) {
-				console.log(error);
-				console.log('Trono submit');
+			setsubmit(true);
+
+			if (!submit) {
+				try {
+					const data = await fetch(`http://localhost:4000/periodos`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							Periodo: values.Nuevo_P,
+						}),
+					});
+					await data.json();
+					setsubmit(false);
+					Swal.fire('Nuevo periodo!');
+					window.location.reload(false);
+				} catch (error) {
+					console.log(error);
+					Swal.fire('Hubo un error de conexion');
+					setsubmit(false);
+					console.log('Trono submit');
+				}
 			}
 		},
 	});
@@ -79,6 +96,11 @@ export const EditarConf = () => {
 			setConfigs(resC);
 			!!resC && formik.setFieldValue('Valor', resC[0].Valor);
 		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un error al descargar la informacion',
+				'Error',
+				3000
+			);
 			console.log(error);
 			console.log('Trono get Data');
 		}
@@ -91,6 +113,11 @@ export const EditarConf = () => {
 				const resU = await dataU.json();
 				setUsers(resU);
 			} catch (error) {
+				NotificationManager.warning(
+					'Hubo un error al descargar los usuarios',
+					'Error',
+					3000
+				);
 				console.log(error);
 				console.log('Trono get Data');
 			}
@@ -100,6 +127,11 @@ export const EditarConf = () => {
 				const resP = await dataP.json();
 				setUsers(resP);
 			} catch (error) {
+				NotificationManager.warning(
+					'Hubo un error al descargar los usuarios',
+					'Error',
+					3000
+				);
 				console.log(error);
 				console.log('Trono get Data');
 			}
@@ -116,21 +148,42 @@ export const EditarConf = () => {
 			denyButtonText: `Eliminar`,
 		}).then(async (result) => {
 			if (result.isDenied) {
-				try {
-					if (idP === configs[0]?.Valor) {
-						Swal.fire(
-							'No de debe eliminar el periodo que esta seleccionado actualmente'
+				setsubmit(true);
+
+				if (!submit) {
+					try {
+						const dataPeriodo = await fetch(
+							`http://localhost:4000/solicitudes/periodo/${idP}`
 						);
-						return;
+						const resPer = await dataPeriodo.json();
+						if (!!resPer && resPer.length > 0) {
+							Swal.fire(
+								'No se puede eliminar un periodo que tenga solicitudes'
+							);
+							setsubmit(false);
+							return;
+						}
+
+						if (idP === configs[0]?.Valor) {
+							Swal.fire(
+								'No de debe eliminar el periodo que esta seleccionado actualmente'
+							);
+							setsubmit(false);
+							return;
+						}
+						const data = await fetch(`http://localhost:4000/periodo/${idP}`, {
+							method: 'DELETE',
+						});
+						await data.json();
+						Swal.fire('Periodo eliminado');
+						setsubmit(false);
+						window.location.reload(false);
+					} catch (error) {
+						Swal.fire('Hubo un error de conexion');
+						console.log(error);
+						console.log('trono delete');
+						setsubmit(false);
 					}
-					const data = await fetch(`http://localhost:4000/periodo/${idP}`, {
-						method: 'DELETE',
-					});
-					await data.json();
-					window.location.reload(false);
-				} catch (error) {
-					console.log(error);
-					console.log('trono delete');
 				}
 			}
 		});
@@ -191,6 +244,7 @@ export const EditarConf = () => {
 							Guardar
 						</button>
 					</form>
+
 					{id === '2' && (
 						<button
 							className='btn btn-danger mx-2'
@@ -200,7 +254,11 @@ export const EditarConf = () => {
 						</button>
 					)}
 				</div>
-
+				{!!formik.touched.Valor && !!formik.errors.Valor && (
+					<label className='text-danger mx-3 mb-2 w-50'>
+						*{formik.errors.Valor}
+					</label>
+				)}
 				{id === '2' && (
 					<form onSubmit={formikNuevo.handleSubmit}>
 						<div className='d-flex m-3'>

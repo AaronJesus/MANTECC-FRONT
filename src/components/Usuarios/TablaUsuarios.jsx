@@ -2,14 +2,10 @@ import { NavLink } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
 import { IconContext } from 'react-icons';
 import { FcCheckmark, FcCancel } from 'react-icons/fc';
-import { useState } from 'react';
 import '../styles/NavbarStyles.css';
-import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 export const TablaUsuarios = ({ users, cargando }) => {
-	const [estcheck, setEstchek] = useState(true);
-
 	const handleEst = async (rfc, est) => {
 		Swal.fire({
 			title: 'Cambiar el estado del usuario?',
@@ -30,7 +26,6 @@ export const TablaUsuarios = ({ users, cargando }) => {
 							}),
 						}
 					);
-					setEstchek(!estcheck);
 					await data.json();
 					window.location.reload(false);
 				} catch (error) {
@@ -56,7 +51,6 @@ export const TablaUsuarios = ({ users, cargando }) => {
 						method: 'DELETE',
 					});
 					await data.json();
-					setEstchek(!estcheck);
 
 					window.location.reload(false);
 				} catch (error) {
@@ -67,27 +61,28 @@ export const TablaUsuarios = ({ users, cargando }) => {
 		});
 	};
 
-	useEffect(() => {}, [users, estcheck]);
-
 	if (cargando) {
-		return <h1>Cargando usuarios</h1>;
+		return (
+			<h1 className='d-flex justify-content-center'>Cargando usuarios...</h1>
+		);
 	}
+
 	return (
 		<>
-			<div className='d-flex m-5 my-0 justify-content-center '>
-				<table className='table table-sm table-hover text-center align-middle'>
-					<thead className='bg-blue text-white'>
-						<tr>
-							<th scope='col'>RFC</th>
-							<th scope='col'>Nombre Completo</th>
-							<th scope='col'>Tipo de usuario</th>
-							<th scope='col'>Estado</th>
-							<th scope='col'>Opciones</th>
-						</tr>
-					</thead>
-					<tbody className='bg-white'>
-						{!!users &&
-							users.map((user) => {
+			<div className='d-flex mx-5 m-3 justify-content-center '>
+				{!!users && users.length ? (
+					<table className='table table-sm table-hover text-center align-middle'>
+						<thead className='bg-blue text-white'>
+							<tr>
+								<th scope='col'>RFC</th>
+								<th scope='col'>Nombre Completo</th>
+								<th scope='col'>Tipo de usuario</th>
+								<th scope='col'>Estado</th>
+								<th scope='col'>Opciones</th>
+							</tr>
+						</thead>
+						<tbody className='bg-white'>
+							{users.map((user) => {
 								return (
 									<tr key={user.RFC}>
 										<td>{user.RFC}</td>
@@ -137,8 +132,11 @@ export const TablaUsuarios = ({ users, cargando }) => {
 									</tr>
 								);
 							})}
-					</tbody>
-				</table>
+						</tbody>
+					</table>
+				) : (
+					<h1>No hay usuarios para mostrar</h1>
+				)}
 			</div>
 		</>
 	);

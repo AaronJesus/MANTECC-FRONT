@@ -1,17 +1,36 @@
 import { useState, useEffect } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import '../styles/NavbarStyles.css';
 import { FcCheckmark, FcCancel } from 'react-icons/fc';
+import Swal from 'sweetalert2';
+import jwtDecode from 'jwt-decode';
 
 export const EditarSolicitud = () => {
+	const nav = useNavigate();
 	const [estado, setEstado] = useState([]);
 	const [aprob, setAprob] = useState();
 	const [rech, setRech] = useState();
 	const [proc, setProc] = useState();
 	const [termTec, setTermTec] = useState();
 	const [aprobAdmin, setAprobAdmin] = useState();
+	const [NoControl, setNoControl] = useState(false);
+
+	const [submit, setsubmit] = useState(false);
 	const { id } = useParams();
+
+	const token = sessionStorage.getItem('token');
+	const [role, setRole] = useState();
+
+	const handleId = () => {
+		if (!!token) {
+			const user = jwtDecode(token);
+
+			if (!!user) {
+				setRole(user.id_Usuario);
+			}
+		}
+	};
 
 	const getEstado = async () => {
 		try {
@@ -29,16 +48,81 @@ export const EditarSolicitud = () => {
 		}
 	};
 
+	const getOrden = async () => {
+		try {
+			const getEst = await fetch(`http://localhost:4000/orden/${id}`);
+			const resEst = await getEst.json();
+			!!resEst && resEst[0].No_Control && setNoControl(true);
+		} catch (error) {
+			console.log('trono en ver los estados');
+			console.error(error);
+		}
+	};
+
 	const handleAprob = () => {
 		setAprob(!aprob);
 		setRech(false);
-	};
-	const handleRech = () => {
 		setTermTec(false);
 		setProc(false);
-		setAprob(false);
 		setAprobAdmin(false);
-		setRech(!rech);
+	};
+
+	const handleRech = () => {
+		Swal.fire({
+			title:
+				'Al rechazar la soliciutd se dara por terminada, esta seguro que desea continuar?',
+			showDenyButton: true,
+			showConfirmButton: false,
+			showCancelButton: true,
+			cancelButtonText: 'Cancelar',
+			denyButtonText: `Continuar`,
+		}).then(async (result) => {
+			if (result.isDenied) {
+				const { value: motivo } = await Swal.fire({
+					title: 'Describa el motivo del rechazo',
+					input: 'textarea',
+					showCancelButton: true,
+					inputValidator: (value) => {
+						if (!value) {
+							return 'Necesita poner algun motivo';
+						}
+					},
+				});
+				if (motivo) {
+					try {
+						const ord = await fetch(
+							`http://localhost:4000/cancelarOrden/${id}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Trabajo_Realizado: 'Solicitud rechazada: ' + motivo,
+								}),
+							}
+						);
+						await ord.json();
+						const estado = await fetch(`http://localhost:4000/estado/${id}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Aceptado: false,
+								Rechazado: true,
+								En_proceso: false,
+								Terminado_tecnico: false,
+								Aprobado_admin: false,
+							}),
+						});
+						await estado.json();
+						Swal.fire('Guardado');
+						nav('/solicitudes');
+					} catch (error) {
+						Swal.fire('Hubo un error con la conexion');
+						console.log('trono en guardar');
+						console.error(error);
+					}
+				}
+			}
+		});
 	};
 	const handleProc = () => {
 		setProc(!proc);
@@ -55,36 +139,57 @@ export const EditarSolicitud = () => {
 		setAprobAdmin(false);
 	};
 	const handleAprobAdmin = () => {
-		setTermTec(true);
-		setProc(true);
-		setAprob(true);
-		setRech(false);
-		setAprobAdmin(!aprobAdmin);
+		if (!!NoControl) {
+			if (role == 1) {
+				setTermTec(true);
+				setProc(true);
+				setAprob(true);
+				setRech(false);
+				setAprobAdmin(!aprobAdmin);
+			} else {
+				Swal.fire(
+					'Solo los administradores pueden aprobar este campo',
+					'',
+					'error'
+				);
+			}
+		} else {
+			Swal.fire('La orden no esta completa, favor de llenarla', '', 'error');
+		}
 	};
 
 	const handleSave = async () => {
-		try {
-			const estado = await fetch(`http://localhost:4000/estado/${id}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					Aceptado: aprob,
-					Rechazado: rech,
-					En_proceso: proc,
-					Terminado_tecnico: termTec,
-					Aprobado_admin: aprobAdmin,
-				}),
-			});
-			await estado.json();
-			window.alert('Guardado!');
-		} catch (error) {
-			console.log('trono en guardar');
-			console.error(error);
+		setsubmit(true);
+		if (!submit) {
+			try {
+				const estado = await fetch(`http://localhost:4000/estado/${id}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						Aceptado: aprob,
+						Rechazado: rech,
+						En_proceso: proc,
+						Terminado_tecnico: termTec,
+						Aprobado_admin: aprobAdmin,
+					}),
+				});
+				await estado.json();
+				Swal.fire('Guardado');
+				nav('/solicitudes');
+				setsubmit(false);
+			} catch (error) {
+				setsubmit(false);
+				Swal.fire('Hubo un error con la conexion');
+				console.log('trono en guardar');
+				console.error(error);
+			}
 		}
 	};
 
 	useEffect(() => {
 		getEstado();
+		getOrden();
+		handleId();
 	}, []);
 
 	return (

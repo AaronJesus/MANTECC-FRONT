@@ -2,10 +2,14 @@ import ith_logo from '../../assets/ith_logo.jpg';
 import 'react-datepicker/dist/react-datepicker.css';
 import Moment from 'moment/moment';
 import { useFormik } from 'formik';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
 
 export const CalificarOrden = () => {
+	const nav = useNavigate();
+	const [submit, setsubmit] = useState(false);
 	const { id } = useParams();
 	const [date, setDate] = useState('');
 	const [vals, setVals] = useState();
@@ -29,20 +33,27 @@ export const CalificarOrden = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch(`http://localhost:4000/orden/${id}`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						Calificacion_Servicio: parseInt(values.Calificacion_Servicio),
-						Comentario_Servicio: values.Comentario_Servicio,
-					}),
-				});
-				await data.json();
-				window.alert('Liston');
-			} catch (error) {
-				window.alert('Trono krnal');
-				console.log(error);
+			setsubmit(true);
+
+			if (!submit) {
+				try {
+					const data = await fetch(`http://localhost:4000/orden/${id}`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							Calificacion_Servicio: parseInt(values.Calificacion_Servicio),
+							Comentario_Servicio: values.Comentario_Servicio,
+						}),
+					});
+					await data.json();
+					setsubmit(false);
+					Swal.fire('Orden calificada!');
+					nav('/solicitudes');
+				} catch (error) {
+					Swal.fire('Hubo un error de conexion');
+					setsubmit(false);
+					console.log(error);
+				}
 			}
 		},
 	});
@@ -54,6 +65,11 @@ export const CalificarOrden = () => {
 			const resC = await dataConf.json();
 			!!resC && setRev(resC[0]);
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudo recuperar la revision',
+				'Error',
+				3000
+			);
 			console.log(error);
 			console.log('Trono get Data');
 		}
@@ -73,6 +89,11 @@ export const CalificarOrden = () => {
 				);
 			}
 		} catch (error) {
+			NotificationManager.warning(
+				'No se pudo recuperar la informacion de la orden',
+				'Error',
+				3000
+			);
 			console.error('Cant get data ' + error);
 		}
 	};
@@ -263,6 +284,7 @@ export const CalificarOrden = () => {
 								<textarea
 									className='form-control m-3 w-75'
 									name='Comentario_Servicio'
+									maxLength={200}
 									onChange={formik.handleChange}
 									onBlur={formik.handleBlur}
 								></textarea>

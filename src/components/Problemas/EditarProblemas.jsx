@@ -3,9 +3,13 @@ import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/NavbarStyles.css';
 import { useFormik } from 'formik';
 import { useEffect } from 'react';
+import Swal from 'sweetalert2';
+import { NotificationManager } from 'react-notifications';
+import { useState } from 'react';
 
 export const EditarProblemas = () => {
 	const { id } = useParams();
+	const [submit, setsubmit] = useState(false);
 
 	const formik = useFormik({
 		initialValues: {
@@ -28,37 +32,48 @@ export const EditarProblemas = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			if (!!id) {
-				try {
-					const data = await fetch(`http://localhost:4000/problema/${id}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Tipo: values.Tipo,
-							Descripcion: values.Descripcion,
-						}),
-					});
-					await data.json();
-					window.location.reload(false);
-				} catch (error) {
-					console.log('Trono update');
-					console.log(error);
-				}
-			} else {
-				try {
-					const data = await fetch(`http://localhost:4000/problemas`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Tipo: values.Tipo,
-							Descripcion: values.Descripcion,
-						}),
-					});
-					await data.json();
-					window.location.reload(false);
-				} catch (error) {
-					console.log('Trono submit');
-					console.log(error);
+			setsubmit(true);
+			if (!submit) {
+				if (!!id) {
+					try {
+						const data = await fetch(`http://localhost:4000/problema/${id}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Tipo: values.Tipo,
+								Descripcion: values.Descripcion,
+							}),
+						});
+						await data.json();
+						setsubmit(false);
+						Swal.fire('Problema actualizado!');
+						window.location.reload(false);
+					} catch (error) {
+						setsubmit(false);
+						Swal.fire('Hubo un error de conexion');
+						console.log('Trono update');
+						console.log(error);
+					}
+				} else {
+					try {
+						const data = await fetch(`http://localhost:4000/problemas`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Tipo: values.Tipo,
+								Descripcion: values.Descripcion,
+							}),
+						});
+						await data.json();
+						setsubmit(false);
+						Swal.fire('Nuevo problema!');
+						window.location.reload(false);
+					} catch (error) {
+						setsubmit(false);
+						Swal.fire('Hubo un error de conexion');
+						console.log('Trono submit');
+						console.log(error);
+					}
 				}
 			}
 		},
@@ -73,6 +88,11 @@ export const EditarProblemas = () => {
 				formik.setFieldValue('Tipo', res[0].Tipo);
 				formik.setFieldValue('idProblema', res[0].idProblema);
 			} catch (error) {
+				NotificationManager.warning(
+					'Hubo un error al descargar la informacion',
+					'Error',
+					3000
+				);
 				console.log('Trono get');
 				console.log(error);
 			}

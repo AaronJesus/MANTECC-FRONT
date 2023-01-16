@@ -1,7 +1,10 @@
 import { useFormik } from 'formik';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 export const Login = () => {
+	const [submit, setsubmit] = useState(false);
 	const nav = useNavigate();
 	const formik = useFormik({
 		initialValues: {
@@ -19,29 +22,35 @@ export const Login = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch('http://localhost:4000/usuarios/login', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						RFC: values.RFC,
-						Contraseña: values.Contraseña,
-					}),
-				});
-				const res = await data.json();
-				if (!!res.accessToken) {
-					sessionStorage.setItem('token', res.accessToken);
-					if (res.user.id_Usuario === 1 || res.user.id_Usuario === 3) {
-						nav('/solicitudes');
+			setsubmit(true);
+			if (!submit) {
+				try {
+					const data = await fetch('http://localhost:4000/usuarios/login', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							RFC: values.RFC,
+							Contraseña: values.Contraseña,
+						}),
+					});
+					const res = await data.json();
+					if (!!res.accessToken) {
+						sessionStorage.setItem('token', res.accessToken);
+						if (res.user.id_Usuario === 1 || res.user.id_Usuario === 3) {
+							nav('/solicitudes');
+						} else {
+							nav('/nueva_solicitud');
+						}
 					} else {
-						nav('/nueva_solicitud');
+						Swal.fire(res.msg);
 					}
-				} else {
-					window.alert(res.msg);
+					setsubmit(false);
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error con la conexion');
+					console.log(error);
+					console.log('No se pudo validar');
 				}
-			} catch (error) {
-				console.log(error);
-				console.log('No se pudo validar');
 			}
 		},
 	});

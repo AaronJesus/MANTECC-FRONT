@@ -1,7 +1,11 @@
 import { useFormik } from 'formik';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 export const NuevoUsuario = () => {
+	const [submit, setsubmit] = useState(false);
+
 	const formik = useFormik({
 		initialValues: {
 			RFC: '',
@@ -35,22 +39,33 @@ export const NuevoUsuario = () => {
 			return errors;
 		},
 		onSubmit: async (values) => {
-			try {
-				const data = await fetch('http://localhost:4000/usuarios', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						RFC: values.RFC,
-						Contraseña: values.Contraseña,
-						Nombres: values.Nombres,
-						id_Usuario: values.id_Usuario,
-					}),
-				});
-				await data.json();
-				window.location.reload(false);
-			} catch (error) {
-				console.log(error);
-				console.log('Trono new user');
+			setsubmit(true);
+			if (!submit) {
+				try {
+					const data = await fetch('http://localhost:4000/usuarios', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							RFC: values.RFC,
+							Contraseña: values.Contraseña,
+							Nombres: values.Nombres,
+							id_Usuario: values.id_Usuario,
+						}),
+					});
+					setsubmit(false);
+					const res = await data.json();
+					if (!!res.msg) {
+						Swal.fire(res.msg);
+					} else {
+						Swal.fire('Nuevo usuario!');
+						window.location.reload(false);
+					}
+				} catch (error) {
+					setsubmit(false);
+					Swal.fire('Hubo un error de conexion');
+					console.log(error);
+					console.log('Trono new user');
+				}
 			}
 		},
 	});
@@ -106,6 +121,7 @@ export const NuevoUsuario = () => {
 							type='text'
 							className='form-control'
 							name='Nombres'
+							maxLength='100'
 							value={formik.values.Nombres}
 							onBlur={formik.handleBlur}
 							onChange={formik.handleChange}

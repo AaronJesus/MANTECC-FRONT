@@ -159,6 +159,7 @@ export const VerOrden = () => {
 			if (!values.Tipo_Servicio) {
 				errors.Tipo_Servicio = 'La orden debe de tener un tipo de servicio';
 			}
+
 			return errors;
 		},
 		onSubmit: async (values) => {
@@ -178,10 +179,41 @@ export const VerOrden = () => {
 			} else if (!!values.Trabajo_Realizado) {
 				req = formik.values.Trabajo_Realizado;
 			}
-			let work = req.slice(0, 200);
+
+			let work;
+			if (!!req) {
+				work = req.slice(0, 200);
+			}
+
 			if (!submit) {
 				try {
-					if (!formik.values.No_Control) {
+					if (!!date) {
+						const fecha = new Date().setHours(0, 0, 0, 0);
+						if (fecha <= date) {
+							const data = await fetch(`http://localhost:4000/orden/${id}`, {
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Trabajo_Realizado: work,
+									Mantenimiento_Interno: parseInt(
+										formik.values.Mantenimiento_Interno
+									),
+									Tipo_Servicio: formik.values.Tipo_Servicio,
+									Asignado_a: formik.values.Asignado_a,
+									Fecha_Realizacion: date,
+									idPeriodo: !!periodo && periodo,
+								}),
+							});
+							await data.json();
+						} else {
+							Swal.fire(
+								'La fecha de realizacion no puede ser anterior a la fecha actual'
+							);
+
+							setsubmit(false);
+							return;
+						}
+					} else {
 						const data = await fetch(`http://localhost:4000/orden/${id}`, {
 							method: 'PUT',
 							headers: { 'Content-Type': 'application/json' },
@@ -194,21 +226,6 @@ export const VerOrden = () => {
 								Asignado_a: formik.values.Asignado_a,
 								Fecha_Realizacion: date,
 								idPeriodo: !!periodo && periodo,
-							}),
-						});
-						await data.json();
-					} else {
-						const data = await fetch(`http://localhost:4000/orden/${id}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Trabajo_Realizado: req,
-								Mantenimiento_Interno: parseInt(
-									formik.values.Mantenimiento_Interno
-								),
-								Tipo_Servicio: formik.values.Tipo_Servicio,
-								Asignado_a: formik.values.Asignado_a,
-								Fecha_Realizacion: date,
 							}),
 						});
 						await data.json();
@@ -603,7 +620,7 @@ export const VerOrden = () => {
 					</div>
 				</div>
 				{(!!vals && vals.Calificacion_Servicio) ||
-				!!formik.values.Trabajo_Realizado ? (
+				!!formik.values.No_Control ? (
 					''
 				) : (
 					<div className='container d-flex justify-content-center my-3'>

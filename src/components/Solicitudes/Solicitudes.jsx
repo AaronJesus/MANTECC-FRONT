@@ -31,11 +31,8 @@ export const Solicitudes = () => {
 	const [solicitudesTerm, setSolicitudesTerm] = useState();
 
 	const [currentPage, setCurrentPage] = useState(1);
-	const [postPerPage] = useState(10);
 	const [currentPosts, setcurrentPosts] = useState();
 	const [cargando, setCargando] = useState(false);
-	const lastPost = currentPage * postPerPage;
-	const firstPost = lastPost - postPerPage;
 
 	const token = sessionStorage.getItem('token');
 	const [role, setRole] = useState();
@@ -79,6 +76,7 @@ export const Solicitudes = () => {
 			Folio: '',
 			Asignado_a: '',
 			Fechas: '',
+			postPerPage: 10,
 		},
 		onSubmit: async (values) => {
 			setCargando(true);
@@ -184,6 +182,9 @@ export const Solicitudes = () => {
 		},
 	});
 
+	const lastPost = currentPage * formik.values.postPerPage;
+	const firstPost = lastPost - formik.values.postPerPage;
+
 	const getPeriodos = async () => {
 		try {
 			const data = await fetch('http://localhost:4000/periodos');
@@ -204,7 +205,18 @@ export const Solicitudes = () => {
 		try {
 			const data = await fetch('http://localhost:4000/areas');
 			const res = await data.json();
-			!!res && setAreas(res);
+			!!res &&
+				setAreas(
+					res.sort(function (a, b) {
+						if (a.Nombre.toLowerCase() < b.Nombre.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombre.toLowerCase() > b.Nombre.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
 		} catch (error) {
 			NotificationManager.warning(
 				'No se pudieron cargar las areas',
@@ -220,7 +232,18 @@ export const Solicitudes = () => {
 		try {
 			const data = await fetch('http://localhost:4000/admins');
 			const res = await data.json();
-			!!res && setUsers(res);
+			!!res &&
+				setUsers(
+					res.sort(function (a, b) {
+						if (a.Nombres.toLowerCase() < b.Nombres.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombres.toLowerCase() > b.Nombres.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
 		} catch (error) {
 			NotificationManager.warning(
 				'No se pudieron cargar los tecnicos',
@@ -252,17 +275,19 @@ export const Solicitudes = () => {
 				if (role === 2) {
 					if (a === 1) {
 						const valid = await fetch(
-							`http://localhost:4000/solicitudRFC/${RFC}`
+							`http://localhost:4000/solicitudRFC/${RFC}/${
+								!!resC && resC[0].Valor
+							}`
 						);
 						const res = await valid.json();
 						setSolicitudes(res);
 					} else if (a === 2) {
-						console.log(RFC);
 						const valid = await fetch(
-							`http://localhost:4000/solicitudRFC/term/${RFC}`
+							`http://localhost:4000/solicitudRFC/term/${RFC}/${
+								!!resC && resC[0].Valor
+							}`
 						);
 						const res = await valid.json();
-						console.log(res);
 						setSolicitudesTerm(res);
 					}
 				} else {
@@ -451,6 +476,7 @@ export const Solicitudes = () => {
 		solicitudes,
 		solicitudesTerm,
 		currentPage,
+		formik.values.postPerPage,
 		a,
 	]);
 
@@ -482,32 +508,54 @@ export const Solicitudes = () => {
 			</div>
 			{(role === 1 || role === 3) && (
 				<>
-					<h4 className='mx-5'>
-						<button
-							className='border-0 bg-transparent m-2'
-							onClick={() => verQuery()}
-						>
-							Filtrar
-							{mostrarQ ? (
+					<div className='d-flex'>
+						<div className='w-50'>
+							<h4 className='mx-5'>
+								<button
+									className='border-0 bg-transparent m-2'
+									onClick={() => verQuery()}
+								>
+									Filtrar
+									{mostrarQ ? (
+										<IconContext.Provider value={{ size: '30' }}>
+											<BsChevronUp />
+										</IconContext.Provider>
+									) : (
+										<IconContext.Provider value={{ size: '30' }}>
+											<BsChevronDown />
+										</IconContext.Provider>
+									)}
+								</button>
 								<IconContext.Provider value={{ size: '30' }}>
-									<BsChevronUp />
+									<button
+										className='border-0 bg-transparent m-2'
+										onClick={() => elimQuery()}
+										title='Eliminar filtros'
+									>
+										<BsFillEraserFill />
+									</button>
 								</IconContext.Provider>
-							) : (
-								<IconContext.Provider value={{ size: '30' }}>
-									<BsChevronDown />
-								</IconContext.Provider>
-							)}
-						</button>
-						<IconContext.Provider value={{ size: '30' }}>
-							<button
-								className='border-0 bg-transparent m-2'
-								onClick={() => elimQuery()}
-								title='Eliminar filtros'
+							</h4>
+						</div>
+						<div className='d-flex w-50 mx-5 justify-content-end align-items-center'>
+							<label className='mx-2 align-content-center' for='postPerPage'>
+								Filas a ver:
+							</label>
+							<select
+								name='postPerPage'
+								className='form-select w-auto '
+								value={formik.values.postPerPage}
+								onChange={formik.handleChange}
 							>
-								<BsFillEraserFill />
-							</button>
-						</IconContext.Provider>
-					</h4>
+								<option value={10}>10</option>
+								<option value={20}>20</option>
+								<option value={30}>30</option>
+								<option value={40}>40</option>
+								<option value={50}>50</option>
+								<option value={100}>100</option>
+							</select>
+						</div>
+					</div>
 					<form onSubmit={formik.handleSubmit}>
 						{!!mostrarQ && (
 							<div className='mx-5 p-1 rounded border bg-blue animate__animated animate__fadeIn'>
@@ -649,7 +697,7 @@ export const Solicitudes = () => {
 				<>
 					<TablaSolicitudes solicitudes={currentPosts} cargando={cargando} />
 					<Paginacion
-						postPerPage={postPerPage}
+						postPerPage={parseInt(formik.values.postPerPage)}
 						totalPosts={!!q ? solQuerys.length : solicitudes.length}
 						paginar={paginar}
 					/>
@@ -659,7 +707,7 @@ export const Solicitudes = () => {
 				<>
 					<TablaTerminadas solicitudes={currentPosts} cargando={cargando} />
 					<Paginacion
-						postPerPage={postPerPage}
+						postPerPage={parseInt(formik.values.postPerPage)}
 						totalPosts={
 							!q ? solicitudesTerm.length : solTerminadasQuerys.length
 						}

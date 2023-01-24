@@ -98,7 +98,7 @@ export const TablaAlumnos = ({ users, cargando }) => {
 								<th scope='col'>Nombre completo</th>
 								<th scope='col'>Numero de control</th>
 								<th scope='col'>Nombre de carrera</th>
-								<th scope='col'>Estado</th>
+								{/* <th scope='col'>Estado</th> */}
 								<th scope='col'>Opciones</th>
 							</tr>
 						</thead>
@@ -119,7 +119,7 @@ export const TablaAlumnos = ({ users, cargando }) => {
 														return c.Nombre_Reducido;
 													})}
 										</td>
-										<td>
+										{/* <td>
 											{user.Estatus === true ? (
 												<div>
 													<label>Activo</label>
@@ -145,7 +145,7 @@ export const TablaAlumnos = ({ users, cargando }) => {
 													</IconContext.Provider>
 												</div>
 											)}
-										</td>
+										</td> */}
 										<td>
 											<NavLink
 												className='btn btn-sm btn-success m-2'

@@ -81,6 +81,11 @@ export const Configs = () => {
 						No se recuperaron Configuraciones
 					</h1>
 				)}
+				<div className='d-flex justify-content-center m-3'>
+					<NavLink className='btn btn-primary m-5' to={`/config/Reporte`}>
+						Reporte anual
+					</NavLink>
+				</div>
 			</div>
 		</>
 	);

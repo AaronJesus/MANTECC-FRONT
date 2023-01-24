@@ -5,6 +5,7 @@ import '../styles/NavbarStyles.css';
 import { FcCheckmark, FcCancel } from 'react-icons/fc';
 import Swal from 'sweetalert2';
 import jwtDecode from 'jwt-decode';
+import Moment from 'moment';
 
 export const EditarSolicitud = () => {
 	const nav = useNavigate();
@@ -15,6 +16,8 @@ export const EditarSolicitud = () => {
 	const [termTec, setTermTec] = useState();
 	const [aprobAdmin, setAprobAdmin] = useState();
 	const [NoControl, setNoControl] = useState(false);
+	const [datOrd, setDatOrd] = useState();
+	const [periodo, setPeriodo] = useState();
 
 	const [submit, setsubmit] = useState(false);
 	const { id } = useParams();
@@ -29,6 +32,17 @@ export const EditarSolicitud = () => {
 			if (!!user) {
 				setRole(user.id_Usuario);
 			}
+		}
+	};
+
+	const getPeriodo = async () => {
+		try {
+			const getEst = await fetch(`http://localhost:4000/configs`);
+			const res = await getEst.json();
+			setPeriodo(res[0].Valor);
+		} catch (error) {
+			console.log('trono en ver los estados');
+			console.error(error);
 		}
 	};
 
@@ -53,6 +67,7 @@ export const EditarSolicitud = () => {
 			const getEst = await fetch(`http://localhost:4000/orden/${id}`);
 			const resEst = await getEst.json();
 			!!resEst && resEst[0].No_Control && setNoControl(true);
+			!!resEst && setDatOrd(resEst[0]);
 		} catch (error) {
 			console.log('trono en ver los estados');
 			console.error(error);
@@ -90,16 +105,18 @@ export const EditarSolicitud = () => {
 				});
 				if (motivo) {
 					try {
-						const ord = await fetch(
-							`http://localhost:4000/cancelarOrden/${id}`,
-							{
-								method: 'PUT',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									Trabajo_Realizado: 'Solicitud rechazada: ' + motivo,
-								}),
-							}
-						);
+						const ord = await fetch(`http://localhost:4000/orden/${id}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Trabajo_Realizado: 'Solicitud rechazada: ' + motivo,
+								Fecha_Realizacion: Moment().format('YYYY-MM-DD'),
+								Mantenimiento_Interno: datOrd.Mantenimiento_Interno,
+								Tipo_Servicio: datOrd.Tipo_Servicio,
+								Asignado_a: datOrd.Asignado_a,
+								idPeriodo: periodo,
+							}),
+						});
 						await ord.json();
 						const estado = await fetch(`http://localhost:4000/estado/${id}`, {
 							method: 'PUT',
@@ -190,6 +207,7 @@ export const EditarSolicitud = () => {
 		getEstado();
 		getOrden();
 		handleId();
+		getPeriodo();
 	}, []);
 
 	return (

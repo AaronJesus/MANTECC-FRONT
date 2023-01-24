@@ -45,7 +45,17 @@ export const NuevaSolicitud = () => {
 		try {
 			const data = await fetch('http://localhost:4000/areas');
 			const res = await data.json();
-			setAreas(res);
+			setAreas(
+				res.sort(function (a, b) {
+					if (a.Nombre.toLowerCase() < b.Nombre.toLowerCase()) {
+						return -1;
+					}
+					if (a.Nombre.toLowerCase() > b.Nombre.toLowerCase()) {
+						return 1;
+					}
+					return 0;
+				})
+			);
 		} catch (error) {
 			NotificationManager.warning(
 				'No se pudieron cargar las areas',

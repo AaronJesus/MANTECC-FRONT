@@ -16,6 +16,7 @@ import { EditarProblemas } from '../components/Problemas/EditarProblemas';
 import { NuevoAlumno } from '../components/Alumnos/NuevoAlumno';
 import { NuevoUsuario } from '../components/Usuarios/NuevoUsuario';
 import { EditarConf } from '../components/Extras/EditarConf';
+import { Reporte } from '../components/Extras/Reporte';
 import { useEffect, useState } from 'react';
 import jwtDecode from 'jwt-decode';
 import { NotificationContainer } from 'react-notifications';
@@ -78,6 +79,7 @@ export const DashboardRoutes = () => {
 							<Route path='configuraciones' element={<Configs />} />
 
 							<Route path='config/:id' element={<EditarConf />} />
+							<Route path='config/Reporte' element={<Reporte />} />
 						</>
 					)}
 				</Routes>

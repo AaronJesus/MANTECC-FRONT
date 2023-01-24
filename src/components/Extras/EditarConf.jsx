@@ -111,7 +111,18 @@ export const EditarConf = () => {
 			try {
 				const dataU = await fetch(`http://localhost:4000/admins`);
 				const resU = await dataU.json();
-				setUsers(resU);
+				!!resU &&
+					setUsers(
+						resU.sort(function (a, b) {
+							if (a.Nombres.toLowerCase() < b.Nombres.toLowerCase()) {
+								return -1;
+							}
+							if (a.Nombres.toLowerCase() > b.Nombres.toLowerCase()) {
+								return 1;
+							}
+							return 0;
+						})
+					);
 			} catch (error) {
 				NotificationManager.warning(
 					'Hubo un error al descargar los usuarios',
@@ -125,7 +136,18 @@ export const EditarConf = () => {
 			try {
 				const dataP = await fetch(`http://localhost:4000/periodos`);
 				const resP = await dataP.json();
-				setUsers(resP);
+				!!resP &&
+					setUsers(
+						resP.sort(function (a, b) {
+							if (a.Periodo < b.Periodo) {
+								return -1;
+							}
+							if (a.Periodo > b.Periodo) {
+								return 1;
+							}
+							return 0;
+						})
+					);
 			} catch (error) {
 				NotificationManager.warning(
 					'Hubo un error al descargar los usuarios',

@@ -92,7 +92,18 @@ export const EditarAlumno = () => {
 			const info = await fetch(`http://localhost:4000/carreras`);
 			const res = await data.json();
 			const resInfo = await info.json();
-			!!resInfo && setCarr(resInfo);
+			!!resInfo &&
+				setCarr(
+					resInfo.sort(function (a, b) {
+						if (a.Nombre.toLowerCase() < b.Nombre.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombre.toLowerCase() > b.Nombre.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
 			!!res && formik.setFieldValue('Nombres', res[0][0].Nombres);
 			formik.setFieldValue('No_Control', res[0][0].No_Control);
 			formik.setFieldValue('Clave_Carrera', res[0][0].Clave_Carrera);

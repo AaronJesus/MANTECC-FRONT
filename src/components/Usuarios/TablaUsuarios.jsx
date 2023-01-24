@@ -77,7 +77,7 @@ export const TablaUsuarios = ({ users, cargando }) => {
 								<th scope='col'>RFC</th>
 								<th scope='col'>Nombre Completo</th>
 								<th scope='col'>Tipo de usuario</th>
-								<th scope='col'>Estado</th>
+								{/* <th scope='col'>Estado</th> */}
 								<th scope='col'>Opciones</th>
 							</tr>
 						</thead>
@@ -88,7 +88,7 @@ export const TablaUsuarios = ({ users, cargando }) => {
 										<td>{user.RFC}</td>
 										<td>{user.Nombres}</td>
 										<td>{user.id_Usuario === 1 ? 'Admin' : 'Cliente'}</td>
-										<td>
+										{/* <td>
 											{user.Estatus === true ? (
 												<div>
 													<label>Activo</label>
@@ -114,7 +114,7 @@ export const TablaUsuarios = ({ users, cargando }) => {
 													</IconContext.Provider>
 												</div>
 											)}
-										</td>
+										</td> */}
 										<td>
 											<NavLink
 												className='btn btn-sm btn-success m-2'

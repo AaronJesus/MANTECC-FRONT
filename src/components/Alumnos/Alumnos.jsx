@@ -14,26 +14,20 @@ export const Alumnos = () => {
 	const [users, setUsers] = useState([]);
 	const [usersQuery, setUsersQuery] = useState();
 	const [currentPage, setCurrentPage] = useState(1);
-	const [postPerPage] = useState(10);
 	const [currentPosts, setcurrentPosts] = useState();
 	const [cargando, setCargando] = useState(false);
 	const [q, setq] = useState(false);
 	const [mostrarQ, setMostrarQ] = useState(false);
 	const [carreras, setCarreras] = useState();
 
-	const lastPost = currentPage * postPerPage;
-	const firstPost = lastPost - postPerPage;
-
 	const token = sessionStorage.getItem('token');
 	const [role, setRole] = useState();
-	const [RFC, setRFC] = useState();
 
 	const handleId = () => {
 		if (!!token) {
 			const user = jwtDecode(token);
 
 			if (!!user) {
-				setRFC(user.RFC);
 				setRole(user.id_Usuario);
 			}
 		}
@@ -58,6 +52,7 @@ export const Alumnos = () => {
 			Nombres: '',
 			Clave_Carrera: '',
 			No_Control: '',
+			postPerPage: 10,
 		},
 		validate: (values) => {
 			let errors;
@@ -100,6 +95,9 @@ export const Alumnos = () => {
 		},
 	});
 
+	const lastPost = currentPage * formik.values.postPerPage;
+	const firstPost = lastPost - formik.values.postPerPage;
+
 	const getData = async () => {
 		setCargando(true);
 		try {
@@ -108,7 +106,18 @@ export const Alumnos = () => {
 			const info = await fetch('http://localhost:4000/carreras');
 			const resInfo = await info.json();
 			!!resInfo && setCarreras(resInfo);
-			!!res && setUsers(res[0]);
+			!!res &&
+				setUsers(
+					res[0].sort(function (a, b) {
+						if (a.Nombres.toLowerCase() < b.Nombres.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombres.toLowerCase() > b.Nombres.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
 			setCargando(false);
 		} catch (error) {
 			NotificationManager.warning(
@@ -135,7 +144,7 @@ export const Alumnos = () => {
 		} else if (!!users) {
 			setcurrentPosts(users.slice(firstPost, lastPost));
 		}
-	}, [users, usersQuery, currentPage]);
+	}, [users, usersQuery, currentPage, formik.values.postPerPage]);
 
 	return (
 		<>
@@ -151,32 +160,54 @@ export const Alumnos = () => {
 
 			{(role === 1 || role === 3) && (
 				<>
-					<h4 className='mx-5'>
-						<button
-							className='border-0 bg-transparent m-2'
-							onClick={() => verQuery()}
-						>
-							Filtrar
-							{mostrarQ ? (
+					<div className='d-flex'>
+						<div className='w-50'>
+							<h4 className='mx-5'>
+								<button
+									className='border-0 bg-transparent m-2'
+									onClick={() => verQuery()}
+								>
+									Filtrar
+									{mostrarQ ? (
+										<IconContext.Provider value={{ size: '30' }}>
+											<BsChevronUp />
+										</IconContext.Provider>
+									) : (
+										<IconContext.Provider value={{ size: '30' }}>
+											<BsChevronDown />
+										</IconContext.Provider>
+									)}
+								</button>
 								<IconContext.Provider value={{ size: '30' }}>
-									<BsChevronUp />
+									<button
+										className='border-0 bg-transparent m-2'
+										onClick={() => elimQuery()}
+										title='Eliminar filtros'
+									>
+										<BsFillEraserFill />
+									</button>
 								</IconContext.Provider>
-							) : (
-								<IconContext.Provider value={{ size: '30' }}>
-									<BsChevronDown />
-								</IconContext.Provider>
-							)}
-						</button>
-						<IconContext.Provider value={{ size: '30' }}>
-							<button
-								className='border-0 bg-transparent m-2'
-								onClick={() => elimQuery()}
-								title='Eliminar filtros'
+							</h4>
+						</div>
+						<div className='d-flex w-50 mx-5 justify-content-end align-items-center'>
+							<label className='mx-2 align-content-center' for='postPerPage'>
+								Filas a ver:
+							</label>
+							<select
+								name='postPerPage'
+								className='form-select w-auto '
+								value={formik.values.postPerPage}
+								onChange={formik.handleChange}
 							>
-								<BsFillEraserFill />
-							</button>
-						</IconContext.Provider>
-					</h4>
+								<option value={10}>10</option>
+								<option value={20}>20</option>
+								<option value={30}>30</option>
+								<option value={40}>40</option>
+								<option value={50}>50</option>
+								<option value={100}>100</option>
+							</select>
+						</div>
+					</div>
 					<form onSubmit={formik.handleSubmit}>
 						{!!mostrarQ && (
 							<div className='mx-5 p-1 rounded border bg-blue animate__animated animate__fadeIn'>
@@ -248,7 +279,7 @@ export const Alumnos = () => {
 
 			<TablaAlumnos users={currentPosts} cargando={cargando} />
 			<Paginacion
-				postPerPage={postPerPage}
+				postPerPage={parseInt(formik.values.postPerPage)}
 				totalPosts={!!q ? usersQuery.length : users.length}
 				paginar={paginar}
 			/>

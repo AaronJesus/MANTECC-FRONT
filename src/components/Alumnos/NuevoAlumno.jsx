@@ -87,7 +87,18 @@ export const NuevoAlumno = () => {
 		try {
 			const data = await fetch('http://localhost:4000/carreras');
 			const res = await data.json();
-			setCarreras(res);
+			!!res &&
+				setCarreras(
+					res.sort(function (a, b) {
+						if (a.Nombre.toLowerCase() < b.Nombre.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombre.toLowerCase() > b.Nombre.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
 		} catch (error) {
 			NotificationManager.warning(
 				'Hubo un error al descargar las carreras',

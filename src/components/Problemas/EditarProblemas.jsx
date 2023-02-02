@@ -36,14 +36,17 @@ export const EditarProblemas = () => {
 			if (!submit) {
 				if (!!id) {
 					try {
-						const data = await fetch(`http://localhost:4000/problema/${id}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Tipo: values.Tipo,
-								Descripcion: values.Descripcion,
-							}),
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/problema/${id}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Tipo: values.Tipo,
+									Descripcion: values.Descripcion,
+								}),
+							}
+						);
 						await data.json();
 						setsubmit(false);
 						Swal.fire('Problema actualizado!');
@@ -56,7 +59,7 @@ export const EditarProblemas = () => {
 					}
 				} else {
 					try {
-						const data = await fetch(`http://localhost:4000/problemas`, {
+						const data = await fetch(process.env.REACT_APP_DEV + `/problemas`, {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
@@ -82,7 +85,7 @@ export const EditarProblemas = () => {
 	const getData = async () => {
 		if (!!id) {
 			try {
-				const data = await fetch(`http://localhost:4000/problema/${id}`);
+				const data = await fetch(process.env.REACT_APP_DEV + `/problema/${id}`);
 				const res = await data.json();
 				!!res && formik.setFieldValue('Descripcion', res[0].Descripcion);
 				formik.setFieldValue('Tipo', res[0].Tipo);

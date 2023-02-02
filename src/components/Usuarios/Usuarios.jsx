@@ -59,15 +59,18 @@ export const Usuarios = () => {
 			}
 			if (!cargando) {
 				try {
-					const getSol = await fetch('http://localhost:4000/usuario/query', {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							RFC: values.RFC,
-							Nombres: values.Nombres,
-							id_Usuario: values.id_Usuario,
-						}),
-					});
+					const getSol = await fetch(
+						process.env.REACT_APP_DEV + '/usuario/query',
+						{
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								RFC: values.RFC,
+								Nombres: values.Nombres,
+								id_Usuario: values.id_Usuario,
+							}),
+						}
+					);
 					const resSol = await getSol.json();
 					setUsersQuery(resSol);
 					setq(true);
@@ -88,7 +91,7 @@ export const Usuarios = () => {
 	const getUsers = async () => {
 		setCargando(true);
 		try {
-			const data = await fetch('http://localhost:4000/usuarios');
+			const data = await fetch(process.env.REACT_APP_DEV + '/usuarios');
 			const res = await data.json();
 			!!res &&
 				setUsers(
@@ -129,6 +132,10 @@ export const Usuarios = () => {
 			setcurrentPosts(users.slice(firstPost, lastPost));
 		}
 	}, [users, usersQuery, currentPage, formik.values.postPerPage]);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [formik.values.postPerPage]);
 
 	return (
 		<>

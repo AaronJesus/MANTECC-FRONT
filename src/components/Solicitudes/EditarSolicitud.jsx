@@ -37,7 +37,7 @@ export const EditarSolicitud = () => {
 
 	const getPeriodo = async () => {
 		try {
-			const getEst = await fetch(`http://localhost:4000/configs`);
+			const getEst = await fetch(process.env.REACT_APP_DEV + `/configs`);
 			const res = await getEst.json();
 			setPeriodo(res[0].Valor);
 		} catch (error) {
@@ -48,7 +48,7 @@ export const EditarSolicitud = () => {
 
 	const getEstado = async () => {
 		try {
-			const getEst = await fetch(`http://localhost:4000/estado/${id}`);
+			const getEst = await fetch(process.env.REACT_APP_DEV + `/estado/${id}`);
 			const resEst = await getEst.json();
 			setEstado(resEst);
 			setAprob(resEst[0].Aceptado);
@@ -64,7 +64,7 @@ export const EditarSolicitud = () => {
 
 	const getOrden = async () => {
 		try {
-			const getEst = await fetch(`http://localhost:4000/orden/${id}`);
+			const getEst = await fetch(process.env.REACT_APP_DEV + `/orden/${id}`);
 			const resEst = await getEst.json();
 			!!resEst && resEst[0].No_Control && setNoControl(true);
 			!!resEst && setDatOrd(resEst[0]);
@@ -105,30 +105,36 @@ export const EditarSolicitud = () => {
 				});
 				if (motivo) {
 					try {
-						const ord = await fetch(`http://localhost:4000/orden/${id}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Trabajo_Realizado: 'Solicitud rechazada: ' + motivo,
-								Fecha_Realizacion: Moment().format('YYYY-MM-DD'),
-								Mantenimiento_Interno: datOrd.Mantenimiento_Interno,
-								Tipo_Servicio: datOrd.Tipo_Servicio,
-								Asignado_a: datOrd.Asignado_a,
-								idPeriodo: periodo,
-							}),
-						});
+						const ord = await fetch(
+							process.env.REACT_APP_DEV + `/orden/${id}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Trabajo_Realizado: 'Solicitud rechazada: ' + motivo,
+									Fecha_Realizacion: Moment().format('YYYY-MM-DD'),
+									Mantenimiento_Interno: datOrd.Mantenimiento_Interno,
+									Tipo_Servicio: datOrd.Tipo_Servicio,
+									Asignado_a: datOrd.Asignado_a,
+									idPeriodo: periodo,
+								}),
+							}
+						);
 						await ord.json();
-						const estado = await fetch(`http://localhost:4000/estado/${id}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Aceptado: false,
-								Rechazado: true,
-								En_proceso: false,
-								Terminado_tecnico: false,
-								Aprobado_admin: false,
-							}),
-						});
+						const estado = await fetch(
+							process.env.REACT_APP_DEV + `/estado/${id}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Aceptado: false,
+									Rechazado: true,
+									En_proceso: false,
+									Terminado_tecnico: false,
+									Aprobado_admin: false,
+								}),
+							}
+						);
 						await estado.json();
 						Swal.fire('Guardado');
 						nav('/solicitudes');
@@ -179,17 +185,20 @@ export const EditarSolicitud = () => {
 		setsubmit(true);
 		if (!submit) {
 			try {
-				const estado = await fetch(`http://localhost:4000/estado/${id}`, {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						Aceptado: aprob,
-						Rechazado: rech,
-						En_proceso: proc,
-						Terminado_tecnico: termTec,
-						Aprobado_admin: aprobAdmin,
-					}),
-				});
+				const estado = await fetch(
+					process.env.REACT_APP_DEV + `/estado/${id}`,
+					{
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							Aceptado: aprob,
+							Rechazado: rech,
+							En_proceso: proc,
+							Terminado_tecnico: termTec,
+							Aprobado_admin: aprobAdmin,
+						}),
+					}
+				);
 				await estado.json();
 				Swal.fire('Guardado');
 				nav('/solicitudes');

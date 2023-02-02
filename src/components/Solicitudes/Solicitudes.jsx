@@ -121,7 +121,7 @@ export const Solicitudes = () => {
 				try {
 					if (a === 1) {
 						const getSol = await fetch(
-							'http://localhost:4000/solicitudes/query',
+							process.env.REACT_APP_DEV + '/solicitudes/query',
 							{
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
@@ -146,7 +146,7 @@ export const Solicitudes = () => {
 						setsolQuerys(resSol);
 					} else if (a === 2) {
 						const getSolTerminadas = await fetch(
-							'http://localhost:4000/solicitudes/terminadas/query',
+							process.env.REACT_APP_DEV + '/solicitudes/terminadas/query',
 							{
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
@@ -187,7 +187,7 @@ export const Solicitudes = () => {
 
 	const getPeriodos = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/periodos');
+			const data = await fetch(process.env.REACT_APP_DEV + '/periodos');
 			const res = await data.json();
 			!!res && setPeriodos(res);
 		} catch (error) {
@@ -203,7 +203,7 @@ export const Solicitudes = () => {
 
 	const getAreas = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/areas');
+			const data = await fetch(process.env.REACT_APP_DEV + '/areas');
 			const res = await data.json();
 			!!res &&
 				setAreas(
@@ -230,7 +230,7 @@ export const Solicitudes = () => {
 
 	const getUsers = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/admins');
+			const data = await fetch(process.env.REACT_APP_DEV + '/admins');
 			const res = await data.json();
 			!!res &&
 				setUsers(
@@ -259,11 +259,11 @@ export const Solicitudes = () => {
 
 		try {
 			//get idPeriodo
-			const dataConf = await fetch(`http://localhost:4000/configs`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/configs`);
 			const resC = await dataConf.json();
 			if (!!resC) {
 				const dataPeriodo = await fetch(
-					`http://localhost:4000/periodo/${resC[0].Valor}`
+					process.env.REACT_APP_DEV + `/periodo/${resC[0].Valor}`
 				);
 				const resP = await dataPeriodo.json();
 				//get periodo
@@ -275,35 +275,34 @@ export const Solicitudes = () => {
 				if (role === 2) {
 					if (a === 1) {
 						const valid = await fetch(
-							`http://localhost:4000/solicitudRFC/${RFC}/${
-								!!resC && resC[0].Valor
-							}`
+							process.env.REACT_APP_DEV + `/solicitudRFC/${RFC}`
 						);
 						const res = await valid.json();
 						setSolicitudes(res);
 					} else if (a === 2) {
 						const valid = await fetch(
-							`http://localhost:4000/solicitudRFC/term/${RFC}/${
-								!!resC && resC[0].Valor
-							}`
+							process.env.REACT_APP_DEV + `/solicitudRFC/term/${RFC}`
 						);
 						const res = await valid.json();
 						setSolicitudesTerm(res);
 					}
 				} else {
 					if (a === 1) {
-						const getSol = await fetch('http://localhost:4000/solicitudes', {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								idPeriodo: !!resC && resC[0].Valor,
-							}),
-						});
+						const getSol = await fetch(
+							process.env.REACT_APP_DEV + '/solicitudes',
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									idPeriodo: !!resC && resC[0].Valor,
+								}),
+							}
+						);
 						const resSol = await getSol.json();
 						setSolicitudes(resSol);
 					} else if (a === 2) {
 						const getSol = await fetch(
-							'http://localhost:4000/solicitudes/terminadas',
+							process.env.REACT_APP_DEV + '/solicitudes/terminadas',
 							{
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
@@ -348,7 +347,8 @@ export const Solicitudes = () => {
 					for (let index = 0; index < solQuerys.length; index++) {
 						try {
 							const data = await fetch(
-								`http://localhost:4000/pdfSol/${solQuerys[index].Folio_Completo}`,
+								process.env.REACT_APP_DEV +
+									`/pdfSol/${solQuerys[index].Folio_Completo}`,
 								{
 									method: 'GET',
 									headers: { 'Content-Type': 'application/pdf' },
@@ -368,7 +368,8 @@ export const Solicitudes = () => {
 					for (let index = 0; index < solTerminadasQuerys.length; index++) {
 						try {
 							const data = await fetch(
-								`http://localhost:4000/pdfSol/${solTerminadasQuerys[index].Folio_Completo}`,
+								process.env.REACT_APP_DEV +
+									`/pdfSol/${solTerminadasQuerys[index].Folio_Completo}`,
 								{
 									method: 'GET',
 									headers: { 'Content-Type': 'application/pdf' },
@@ -407,7 +408,8 @@ export const Solicitudes = () => {
 					for (let index = 0; index < solQuerys.length; index++) {
 						try {
 							const data = await fetch(
-								`http://localhost:4000/pdfOrden/${solQuerys[index].Folio_Completo}`,
+								process.env.REACT_APP_DEV +
+									`/pdfOrden/${solQuerys[index].Folio_Completo}`,
 								{
 									method: 'GET',
 									headers: { 'Content-Type': 'application/pdf' },
@@ -427,7 +429,8 @@ export const Solicitudes = () => {
 					for (let index = 0; index < solTerminadasQuerys.length; index++) {
 						try {
 							const data = await fetch(
-								`http://localhost:4000/pdfOrden/${solTerminadasQuerys[index].Folio_Completo}`,
+								process.env.REACT_APP_DEV +
+									`/pdfOrden/${solTerminadasQuerys[index].Folio_Completo}`,
 								{
 									method: 'GET',
 									headers: { 'Content-Type': 'application/pdf' },
@@ -486,6 +489,10 @@ export const Solicitudes = () => {
 		setSolTerminadasQuerys('');
 		setsolQuerys('');
 	}, [a]);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [formik.values.postPerPage]);
 
 	return (
 		<>
@@ -691,6 +698,26 @@ export const Solicitudes = () => {
 						)}
 					</form>
 				</>
+			)}
+			{role === 2 && (
+				<div className='d-flex mx-5 justify-content-end align-items-center'>
+					<label className='mx-2 align-content-center' for='postPerPage'>
+						Filas a ver:
+					</label>
+					<select
+						name='postPerPage'
+						className='form-select w-auto '
+						value={formik.values.postPerPage}
+						onChange={formik.handleChange}
+					>
+						<option value={10}>10</option>
+						<option value={20}>20</option>
+						<option value={30}>30</option>
+						<option value={40}>40</option>
+						<option value={50}>50</option>
+						<option value={100}>100</option>
+					</select>
+				</div>
 			)}
 
 			{!!solicitudes && a === 1 && (

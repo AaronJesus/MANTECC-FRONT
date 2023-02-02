@@ -42,7 +42,7 @@ export const NuevoUsuario = () => {
 			setsubmit(true);
 			if (!submit) {
 				try {
-					const data = await fetch('http://localhost:4000/usuarios', {
+					const data = await fetch(process.env.REACT_APP_DEV + '/usuarios', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({

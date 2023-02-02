@@ -37,7 +37,7 @@ export const CalificarOrden = () => {
 
 			if (!submit) {
 				try {
-					const data = await fetch(`http://localhost:4000/orden/${id}`, {
+					const data = await fetch(process.env.REACT_APP_DEV + `/orden/${id}`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -61,7 +61,7 @@ export const CalificarOrden = () => {
 	const getRev = async () => {
 		try {
 			//3 es el numero de la revision
-			const dataConf = await fetch(`http://localhost:4000/config/3`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/config/3`);
 			const resC = await dataConf.json();
 			!!resC && setRev(resC[0]);
 		} catch (error) {
@@ -78,7 +78,7 @@ export const CalificarOrden = () => {
 
 	const getDatos = async () => {
 		try {
-			const data = await fetch(`http://localhost:4000/orden/${id}`);
+			const data = await fetch(process.env.REACT_APP_DEV + `/orden/${id}`);
 			const res = await data.json();
 			if (!!res[0]) {
 				setVals(res[0]);

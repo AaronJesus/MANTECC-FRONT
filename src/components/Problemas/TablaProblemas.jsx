@@ -15,9 +15,12 @@ export const TablaProblemas = ({ prob, cargando }) => {
 		}).then(async (result) => {
 			if (result.isDenied) {
 				try {
-					const data = await fetch(`http://localhost:4000/problema/${idP}`, {
-						method: 'DELETE',
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + `/problema/${idP}`,
+						{
+							method: 'DELETE',
+						}
+					);
 					await data.json();
 					window.location.reload(false);
 				} catch (error) {

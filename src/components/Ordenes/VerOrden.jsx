@@ -14,9 +14,9 @@ export const VerOrden = () => {
 	const nav = useNavigate();
 	const [date, setDate] = useState('');
 	const [vals, setVals] = useState();
+	const [users, setUsers] = useState();
 	const [verEdit, setVerEdit] = useState(false);
 	const [verSug, setVerSug] = useState(false);
-	const [periodo, setPeriodo] = useState();
 	const [prob, setProb] = useState();
 	const [rev, setRev] = useState();
 	const [submit, setsubmit] = useState(false);
@@ -26,10 +26,43 @@ export const VerOrden = () => {
 	const getRev = async () => {
 		try {
 			//3 es el numero de la revision
-			const dataConf = await fetch(`http://localhost:4000/configs`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/configs`);
 			const resC = await dataConf.json();
 			!!resC && setRev(resC[1]);
-			!!resC && setPeriodo(resC[0].Valor);
+		} catch (error) {
+			NotificationManager.warning(
+				'Hubo un problema al cargar ciertos campos',
+				'Error',
+				3000
+			);
+			console.log(error);
+			console.log('Trono get Data');
+		}
+	};
+
+	const getAsignados = async () => {
+		try {
+			const dataAdmins = await fetch(process.env.REACT_APP_DEV + `/admins`);
+			const resA = await dataAdmins.json();
+			const dataAlumn = await fetch(process.env.REACT_APP_DEV + `/alumnos`);
+			const resAl = await dataAlumn.json();
+			!!resA &&
+				setUsers(
+					resA.sort(function (a, b) {
+						if (a.Nombres.toLowerCase() < b.Nombres.toLowerCase()) {
+							return -1;
+						}
+						if (a.Nombres.toLowerCase() > b.Nombres.toLowerCase()) {
+							return 1;
+						}
+						return 0;
+					})
+				);
+			if (!!resAl) {
+				for (let index = 0; index < resAl[0].length; index++) {
+					setUsers((users) => [...users, resAl[0][index]]);
+				}
+			}
 		} catch (error) {
 			NotificationManager.warning(
 				'Hubo un problema al cargar ciertos campos',
@@ -43,7 +76,7 @@ export const VerOrden = () => {
 
 	const getProb = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/problemasAdmin');
+			const data = await fetch(process.env.REACT_APP_DEV + '/problemasAdmin');
 			const res = await data.json();
 			!!res && setProb(res);
 		} catch (error) {
@@ -58,7 +91,7 @@ export const VerOrden = () => {
 
 	const getDatos = async () => {
 		try {
-			const data = await fetch(`http://localhost:4000/orden/${id}`);
+			const data = await fetch(process.env.REACT_APP_DEV + `/orden/${id}`);
 			const res = await data.json();
 			if (!!res[0]) {
 				setVals(res[0]);
@@ -187,49 +220,22 @@ export const VerOrden = () => {
 
 			if (!submit) {
 				try {
-					if (!!date) {
-						const fecha = new Date().setHours(0, 0, 0, 0);
-						if (fecha <= date) {
-							const data = await fetch(`http://localhost:4000/orden/${id}`, {
-								method: 'PUT',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									Trabajo_Realizado: work,
-									Mantenimiento_Interno: parseInt(
-										formik.values.Mantenimiento_Interno
-									),
-									Tipo_Servicio: formik.values.Tipo_Servicio,
-									Asignado_a: formik.values.Asignado_a,
-									Fecha_Realizacion: date,
-									idPeriodo: !!periodo && periodo,
-								}),
-							});
-							await data.json();
-						} else {
-							Swal.fire(
-								'La fecha de realizacion no puede ser anterior a la fecha actual'
-							);
+					const data = await fetch(process.env.REACT_APP_DEV + `/orden/${id}`, {
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							Trabajo_Realizado: work,
+							Mantenimiento_Interno: parseInt(
+								formik.values.Mantenimiento_Interno
+							),
+							Tipo_Servicio: formik.values.Tipo_Servicio,
+							Asignado_a: formik.values.Asignado_a,
+							Fecha_Realizacion: date,
+							idPeriodo: !!vals && vals.idPeriodo,
+						}),
+					});
+					await data.json();
 
-							setsubmit(false);
-							return;
-						}
-					} else {
-						const data = await fetch(`http://localhost:4000/orden/${id}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Trabajo_Realizado: work,
-								Mantenimiento_Interno: parseInt(
-									formik.values.Mantenimiento_Interno
-								),
-								Tipo_Servicio: formik.values.Tipo_Servicio,
-								Asignado_a: formik.values.Asignado_a,
-								Fecha_Realizacion: date,
-								idPeriodo: !!periodo && periodo,
-							}),
-						});
-						await data.json();
-					}
 					setsubmit(false);
 					setVerEdit(!verEdit);
 					Swal.fire('Orden actualizada');
@@ -247,8 +253,8 @@ export const VerOrden = () => {
 		getDatos();
 		getRev();
 		getProb();
-	}, [setRev, setPeriodo]);
-
+		getAsignados();
+	}, [setRev, setUsers, setProb, setVals]);
 	return (
 		<>
 			<form onSubmit={formik.handleSubmit}>
@@ -353,7 +359,8 @@ export const VerOrden = () => {
 							</div>
 							<div className='d-flex m-3 my-0 border-top-0 border border-dark'>
 								<label className='col-4 m-3 col-form-label'>Asignado a:</label>
-								<input
+
+								<select
 									className='w-25 m-3 form-control'
 									disabled={!verEdit}
 									name='Asignado_a'
@@ -361,7 +368,15 @@ export const VerOrden = () => {
 									onChange={formik.handleChange}
 									onBlur={formik.handleBlur}
 									value={formik.values.Asignado_a}
-								/>
+								>
+									<option value=''>---</option>
+									{!!users &&
+										users.map((u) => (
+											<option key={u.RFC} value={u.Nombres}>
+												{u.Nombres}
+											</option>
+										))}
+								</select>
 								{!!formik.touched.Asignado_a && !!formik.errors.Asignado_a && (
 									<label className='text-danger mx-3 w-50'>
 										*{formik.errors.Asignado_a}

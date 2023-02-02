@@ -9,10 +9,10 @@ export const Configs = () => {
 
 	const getData = async () => {
 		try {
-			const dataConf = await fetch('http://localhost:4000/configs');
+			const dataConf = await fetch(process.env.REACT_APP_DEV + '/configs');
 			const resC = await dataConf.json();
 			setConfigs(resC);
-			const dataP = await fetch('http://localhost:4000/periodos');
+			const dataP = await fetch(process.env.REACT_APP_DEV + '/periodos');
 			const resP = await dataP.json();
 			setPeriodo(resP);
 		} catch (error) {
@@ -83,7 +83,7 @@ export const Configs = () => {
 				)}
 				<div className='d-flex justify-content-center m-3'>
 					<NavLink className='btn btn-primary m-5' to={`/config/Reporte`}>
-						Reporte anual
+						Reporte de mantenimiento
 					</NavLink>
 				</div>
 			</div>

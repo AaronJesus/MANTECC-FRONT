@@ -11,7 +11,7 @@ export const VerSolicitud = () => {
 	const getRev = async () => {
 		try {
 			//3 es el numero de la revision
-			const dataConf = await fetch(`http://localhost:4000/config/3`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/config/3`);
 			const resC = await dataConf.json();
 			!!resC && setRev(resC[0]);
 		} catch (error) {
@@ -22,11 +22,11 @@ export const VerSolicitud = () => {
 	const [rev, setRev] = useState();
 	const getDatos = async () => {
 		try {
-			const data = await fetch(`http://localhost:4000/solicitud/${id}`);
+			const data = await fetch(process.env.REACT_APP_DEV + `/solicitud/${id}`);
 			const res = await data.json();
 			if (!!res) {
 				const getArea = await fetch(
-					`http://localhost:4000/area/${res[0].Clave_Area}`
+					process.env.REACT_APP_DEV + `/area/${res[0].Clave_Area}`
 				);
 				const resArea = await getArea.json();
 				!!resArea && setDpto(resArea[0].Nombre);

@@ -41,29 +41,35 @@ export const EditarUsuario = () => {
 			if (!submit) {
 				try {
 					if (!!values.Contraseña) {
-						const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								RFC: rfc,
-								RFC2: values.RFC2,
-								Contraseña: values.Contraseña,
-								Nombres: values.Nombres,
-								id_Usuario: values.id_Usuario,
-							}),
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/usuario/${rfc}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									RFC: rfc,
+									RFC2: values.RFC2,
+									Contraseña: values.Contraseña,
+									Nombres: values.Nombres,
+									id_Usuario: values.id_Usuario,
+								}),
+							}
+						);
 						await data.json();
 					} else {
-						const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								RFC: rfc,
-								RFC2: values.RFC2,
-								Nombres: values.Nombres,
-								id_Usuario: values.id_Usuario,
-							}),
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/usuario/${rfc}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									RFC: rfc,
+									RFC2: values.RFC2,
+									Nombres: values.Nombres,
+									id_Usuario: values.id_Usuario,
+								}),
+							}
+						);
 						await data.json();
 					}
 					setsubmit(false);
@@ -82,7 +88,7 @@ export const EditarUsuario = () => {
 
 	const getDatos = async () => {
 		try {
-			const data = await fetch(`http://localhost:4000/usuario/${rfc}`);
+			const data = await fetch(process.env.REACT_APP_DEV + `/usuario/${rfc}`);
 			const res = await data.json();
 			!!res[0] && formik.setFieldValue('Nombres', res[0].Nombres);
 			formik.setFieldValue('id_Usuario', res[0].id_Usuario);

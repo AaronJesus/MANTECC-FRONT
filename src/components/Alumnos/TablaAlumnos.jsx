@@ -12,7 +12,7 @@ export const TablaAlumnos = ({ users, cargando }) => {
 
 	const getData = async () => {
 		try {
-			const info = await fetch('http://localhost:4000/carreras');
+			const info = await fetch(process.env.REACT_APP_DEV + '/carreras');
 			const resInfo = await info.json();
 			setCarr(resInfo);
 		} catch (error) {
@@ -21,36 +21,36 @@ export const TablaAlumnos = ({ users, cargando }) => {
 		}
 	};
 
-	const handleEst = async (rfc, est) => {
-		Swal.fire({
-			title: 'Cambiar el estado del alumno?',
-			showConfirmButton: true,
-			showCancelButton: true,
-			confirmButtonText: 'Confirmar',
-			cancelButtonText: `Calcelar`,
-		}).then(async (result) => {
-			if (result.isConfirmed) {
-				try {
-					const data = await fetch(
-						`http://localhost:4000/usuarioEstado/${rfc}`,
-						{
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Estatus: est,
-							}),
-						}
-					);
-					await data.json();
+	// const handleEst = async (rfc, est) => {
+	// 	Swal.fire({
+	// 		title: 'Cambiar el estado del alumno?',
+	// 		showConfirmButton: true,
+	// 		showCancelButton: true,
+	// 		confirmButtonText: 'Confirmar',
+	// 		cancelButtonText: `Calcelar`,
+	// 	}).then(async (result) => {
+	// 		if (result.isConfirmed) {
+	// 			try {
+	// 				const data = await fetch(
+	// 					process.env.REACT_APP_DEV + `/usuarioEstado/${rfc}`,
+	// 					{
+	// 						method: 'PUT',
+	// 						headers: { 'Content-Type': 'application/json' },
+	// 						body: JSON.stringify({
+	// 							Estatus: est,
+	// 						}),
+	// 					}
+	// 				);
+	// 				await data.json();
 
-					window.location.reload(false);
-				} catch (error) {
-					console.log(error);
-					console.log('trono estado');
-				}
-			}
-		});
-	};
+	// 				window.location.reload(false);
+	// 			} catch (error) {
+	// 				console.log(error);
+	// 				console.log('trono estado');
+	// 			}
+	// 		}
+	// 	});
+	// };
 
 	const handleDel = async (rfc) => {
 		Swal.fire({
@@ -63,9 +63,12 @@ export const TablaAlumnos = ({ users, cargando }) => {
 		}).then(async (result) => {
 			if (result.isDenied) {
 				try {
-					const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
-						method: 'DELETE',
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + `/alumno/${rfc}`,
+						{
+							method: 'DELETE',
+						}
+					);
 					await data.json();
 
 					window.location.reload(false);

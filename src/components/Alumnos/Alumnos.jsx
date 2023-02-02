@@ -71,16 +71,19 @@ export const Alumnos = () => {
 			}
 			if (!cargando) {
 				try {
-					const getSol = await fetch('http://localhost:4000/alumnos/query', {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							RFC: values.RFC,
-							Nombres: values.Nombres,
-							Clave_Carrera: values.Clave_Carrera,
-							No_Control: values.No_Control,
-						}),
-					});
+					const getSol = await fetch(
+						process.env.REACT_APP_DEV + '/alumnos/query',
+						{
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								RFC: values.RFC,
+								Nombres: values.Nombres,
+								Clave_Carrera: values.Clave_Carrera,
+								No_Control: values.No_Control,
+							}),
+						}
+					);
 					const resSol = await getSol.json();
 					setUsersQuery(resSol);
 					setq(true);
@@ -101,9 +104,9 @@ export const Alumnos = () => {
 	const getData = async () => {
 		setCargando(true);
 		try {
-			const data = await fetch('http://localhost:4000/alumnos');
+			const data = await fetch(process.env.REACT_APP_DEV + '/alumnos');
 			const res = await data.json();
-			const info = await fetch('http://localhost:4000/carreras');
+			const info = await fetch(process.env.REACT_APP_DEV + '/carreras');
 			const resInfo = await info.json();
 			!!resInfo && setCarreras(resInfo);
 			!!res &&
@@ -145,6 +148,10 @@ export const Alumnos = () => {
 			setcurrentPosts(users.slice(firstPost, lastPost));
 		}
 	}, [users, usersQuery, currentPage, formik.values.postPerPage]);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [formik.values.postPerPage]);
 
 	return (
 		<>

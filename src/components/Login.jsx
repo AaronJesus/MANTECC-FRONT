@@ -25,14 +25,17 @@ export const Login = () => {
 			setsubmit(true);
 			if (!submit) {
 				try {
-					const data = await fetch('http://localhost:4000/usuarios/login', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							RFC: values.RFC,
-							Contraseña: values.Contraseña,
-						}),
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + '/usuarios/login',
+						{
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								RFC: values.RFC,
+								Contraseña: values.Contraseña,
+							}),
+						}
+					);
 					const res = await data.json();
 					if (!!res.accessToken) {
 						sessionStorage.setItem('token', res.accessToken);

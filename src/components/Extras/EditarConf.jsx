@@ -29,14 +29,17 @@ export const EditarConf = () => {
 
 			if (!submit) {
 				try {
-					const data = await fetch(`http://localhost:4000/config/${id}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							idConfig: id,
-							Valor: values.Valor,
-						}),
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + `/config/${id}`,
+						{
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								idConfig: id,
+								Valor: values.Valor,
+							}),
+						}
+					);
 					await data.json();
 					setsubmit(false);
 					Swal.fire('Configuracion actualizada!');
@@ -68,17 +71,22 @@ export const EditarConf = () => {
 
 			if (!submit) {
 				try {
-					const data = await fetch(`http://localhost:4000/periodos`, {
+					const data = await fetch(process.env.REACT_APP_DEV + `/periodos`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
 							Periodo: values.Nuevo_P,
 						}),
 					});
-					await data.json();
-					setsubmit(false);
-					Swal.fire('Nuevo periodo!');
-					window.location.reload(false);
+					const res = await data.json();
+					if (!!res.msg) {
+						setsubmit(false);
+						Swal.fire('Este periodo ya existe');
+					} else {
+						setsubmit(false);
+						Swal.fire('Nuevo periodo!');
+						window.location.reload(false);
+					}
 				} catch (error) {
 					console.log(error);
 					Swal.fire('Hubo un error de conexion');
@@ -91,7 +99,7 @@ export const EditarConf = () => {
 
 	const getData = async () => {
 		try {
-			const dataConf = await fetch(`http://localhost:4000/config/${id}`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/config/${id}`);
 			const resC = await dataConf.json();
 			setConfigs(resC);
 			!!resC && formik.setFieldValue('Valor', resC[0].Valor);
@@ -109,7 +117,7 @@ export const EditarConf = () => {
 	const getExtras = async () => {
 		if (id === '4' || id === '5') {
 			try {
-				const dataU = await fetch(`http://localhost:4000/admins`);
+				const dataU = await fetch(process.env.REACT_APP_DEV + `/admins`);
 				const resU = await dataU.json();
 				!!resU &&
 					setUsers(
@@ -134,7 +142,7 @@ export const EditarConf = () => {
 			}
 		} else if (id === '2') {
 			try {
-				const dataP = await fetch(`http://localhost:4000/periodos`);
+				const dataP = await fetch(process.env.REACT_APP_DEV + `/periodos`);
 				const resP = await dataP.json();
 				!!resP &&
 					setUsers(
@@ -161,6 +169,8 @@ export const EditarConf = () => {
 	};
 
 	const handleDel = async (idP) => {
+		const dataConf = await fetch(process.env.REACT_APP_DEV + `/config/${id}`);
+		const resC = await dataConf.json();
 		Swal.fire({
 			title: 'Seguro que desea eliminar el periodo?',
 			showDenyButton: true,
@@ -175,9 +185,16 @@ export const EditarConf = () => {
 				if (!submit) {
 					try {
 						const dataPeriodo = await fetch(
-							`http://localhost:4000/solicitudes/periodo/${idP}`
+							process.env.REACT_APP_DEV + `/solicitudes/periodo/${idP}`
 						);
 						const resPer = await dataPeriodo.json();
+						if (idP === resC[0].Valor) {
+							Swal.fire(
+								'No de debe eliminar el periodo que esta seleccionado actualmente'
+							);
+							setsubmit(false);
+							return;
+						}
 						if (!!resPer && resPer.length > 0) {
 							Swal.fire(
 								'No se puede eliminar un periodo que tenga solicitudes'
@@ -186,16 +203,12 @@ export const EditarConf = () => {
 							return;
 						}
 
-						if (idP === configs[0]?.Valor) {
-							Swal.fire(
-								'No de debe eliminar el periodo que esta seleccionado actualmente'
-							);
-							setsubmit(false);
-							return;
-						}
-						const data = await fetch(`http://localhost:4000/periodo/${idP}`, {
-							method: 'DELETE',
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/periodo/${idP}`,
+							{
+								method: 'DELETE',
+							}
+						);
 						await data.json();
 						Swal.fire('Periodo eliminado');
 						setsubmit(false);

@@ -50,27 +50,33 @@ export const EditarAlumno = () => {
 			if (!submit) {
 				try {
 					if (!!values.Contraseña) {
-						const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Contraseña: values.Contraseña,
-								Nombres: values.Nombres,
-								No_Control: values.No_Control.toString(),
-								Clave_Carrera: values.Clave_Carrera,
-							}),
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/alumno/${rfc}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Contraseña: values.Contraseña,
+									Nombres: values.Nombres,
+									No_Control: values.No_Control.toString(),
+									Clave_Carrera: values.Clave_Carrera,
+								}),
+							}
+						);
 						await data.json();
 					} else {
-						const data = await fetch(`http://localhost:4000/alumno/${rfc}`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								Nombres: values.Nombres,
-								No_Control: values.No_Control.toString(),
-								Clave_Carrera: values.Clave_Carrera,
-							}),
-						});
+						const data = await fetch(
+							process.env.REACT_APP_DEV + `/alumno/${rfc}`,
+							{
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									Nombres: values.Nombres,
+									No_Control: values.No_Control.toString(),
+									Clave_Carrera: values.Clave_Carrera,
+								}),
+							}
+						);
 						await data.json();
 					}
 					setsubmit(false);
@@ -88,8 +94,8 @@ export const EditarAlumno = () => {
 
 	const getData = async () => {
 		try {
-			const data = await fetch(`http://localhost:4000/alumno/${rfc}`);
-			const info = await fetch(`http://localhost:4000/carreras`);
+			const data = await fetch(process.env.REACT_APP_DEV + `/alumno/${rfc}`);
+			const info = await fetch(process.env.REACT_APP_DEV + `/carreras`);
 			const res = await data.json();
 			const resInfo = await info.json();
 			!!resInfo &&

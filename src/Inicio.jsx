@@ -35,10 +35,7 @@ export const Inicio = () => {
 				</h4>
 				<br />
 				<div className='float-end mt-5'>
-					<button
-						className='btn btn-sm btn-outline-light'
-						onClick={() => acercaDe()}
-					>
+					<button className='btn btn-secondary' onClick={() => acercaDe()}>
 						Acerca de
 					</button>
 				</div>

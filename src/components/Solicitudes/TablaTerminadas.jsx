@@ -25,7 +25,7 @@ export const TablaTerminadas = ({ solicitudes, cargando }) => {
 
 	const getAreas = async () => {
 		try {
-			const getAreas = await fetch(`http://localhost:4000/areas`);
+			const getAreas = await fetch(process.env.REACT_APP_DEV + `/areas`);
 			const resAreas = await getAreas.json();
 			setDptos(resAreas);
 		} catch (error) {
@@ -45,9 +45,12 @@ export const TablaTerminadas = ({ solicitudes, cargando }) => {
 		}).then(async (result) => {
 			if (result.isDenied) {
 				try {
-					const data = await fetch(`http://localhost:4000/solicitud/${idP}`, {
-						method: 'DELETE',
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + `/solicitud/${idP}`,
+						{
+							method: 'DELETE',
+						}
+					);
 					await data.json();
 					window.location.reload(false);
 				} catch (error) {
@@ -60,7 +63,7 @@ export const TablaTerminadas = ({ solicitudes, cargando }) => {
 
 	const downloadSol = async (Folio) => {
 		try {
-			const data = await fetch(`http://localhost:4000/pdfSol/${Folio}`, {
+			const data = await fetch(process.env.REACT_APP_DEV + `/pdfSol/${Folio}`, {
 				method: 'GET',
 				headers: { 'Content-Type': 'application/pdf' },
 				responseType: 'blob',
@@ -75,11 +78,14 @@ export const TablaTerminadas = ({ solicitudes, cargando }) => {
 
 	const downloadOrden = async (Folio) => {
 		try {
-			const data = await fetch(`http://localhost:4000/pdfOrden/${Folio}`, {
-				method: 'GET',
-				headers: { 'Content-Type': 'application/pdf' },
-				responseType: 'blob',
-			});
+			const data = await fetch(
+				process.env.REACT_APP_DEV + `/pdfOrden/${Folio}`,
+				{
+					method: 'GET',
+					headers: { 'Content-Type': 'application/pdf' },
+					responseType: 'blob',
+				}
+			);
 			const res = await data.blob();
 			saveAs(res, `Orden ${Folio}`);
 		} catch (error) {

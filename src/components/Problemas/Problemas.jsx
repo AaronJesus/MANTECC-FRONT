@@ -61,14 +61,17 @@ export const Problemas = () => {
 			}
 			if (!cargando) {
 				try {
-					const getSol = await fetch('http://localhost:4000/problema/query', {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							Descripcion: values.Descripcion,
-							Tipo: values.Tipo,
-						}),
-					});
+					const getSol = await fetch(
+						process.env.REACT_APP_DEV + '/problema/query',
+						{
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								Descripcion: values.Descripcion,
+								Tipo: values.Tipo,
+							}),
+						}
+					);
 					const resSol = await getSol.json();
 					setProbQuery(resSol);
 					setq(true);
@@ -89,7 +92,7 @@ export const Problemas = () => {
 	const getData = async () => {
 		setCargando(true);
 		try {
-			const data = await fetch('http://localhost:4000/problemas');
+			const data = await fetch(process.env.REACT_APP_DEV + '/problemas');
 			const res = await data.json();
 			setProb(res);
 			setCargando(false);
@@ -119,6 +122,10 @@ export const Problemas = () => {
 			setcurrentPosts(prob.slice(firstPost, lastPost));
 		}
 	}, [prob, probQuery, currentPage, formik.values.postPerPage]);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [formik.values.postPerPage]);
 
 	return (
 		<>

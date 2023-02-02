@@ -27,7 +27,7 @@ export const Reporte = () => {
 
 	const getAreas = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/areas');
+			const data = await fetch(process.env.REACT_APP_DEV + '/areas');
 			const res = await data.json();
 			setAreas(
 				res.sort(function (a, b) {
@@ -54,15 +54,24 @@ export const Reporte = () => {
 		try {
 			for (let index = 0; index <= 11; index++) {
 				const data = await fetch(
-					`http://localhost:4000/eneProceso/${formik.values.year}/${index}`
+					process.env.REACT_APP_DEV +
+						`/eneProceso/${
+							formik.values.year ? formik.values.year : new Date().getFullYear()
+						}/${index}`
 				);
 				const res = await data.json();
 				const dataT = await fetch(
-					`http://localhost:4000/eneTerminadas/${formik.values.year}/${index}`
+					process.env.REACT_APP_DEV +
+						`/eneTerminadas/${
+							formik.values.year ? formik.values.year : new Date().getFullYear()
+						}/${index}`
 				);
 				const resT = await dataT.json();
 				const dataR = await fetch(
-					`http://localhost:4000/eneRechazadas/${formik.values.year}/${index}`
+					process.env.REACT_APP_DEV +
+						`/eneRechazadas/${
+							formik.values.year ? formik.values.year : new Date().getFullYear()
+						}/${index}`
 				);
 				const resR = await dataR.json();
 
@@ -242,15 +251,24 @@ export const Reporte = () => {
 	const getAño = async () => {
 		try {
 			const data = await fetch(
-				`http://localhost:4000/yearTotal/${formik.values.year}`
+				process.env.REACT_APP_DEV +
+					`/yearTotal/${
+						formik.values.year ? formik.values.year : new Date().getFullYear()
+					}`
 			);
 			const res = await data.json();
 			const dataP = await fetch(
-				`http://localhost:4000/yearProc/${formik.values.year}`
+				process.env.REACT_APP_DEV +
+					`/yearProc/${
+						formik.values.year ? formik.values.year : new Date().getFullYear()
+					}`
 			);
 			const resP = await dataP.json();
 			const dataT = await fetch(
-				`http://localhost:4000/yearDone/${formik.values.year}`
+				process.env.REACT_APP_DEV +
+					`/yearDone/${
+						formik.values.year ? formik.values.year : new Date().getFullYear()
+					}`
 			);
 			const resT = await dataT.json();
 			!!res && setYearTot(res);
@@ -397,11 +415,11 @@ export const Reporte = () => {
 				<h1>Reporte</h1>
 			</div>
 			<div className='ms-5'>
-				<p className='text-danger m-2'>ROJO para las solicitudes rechazadas</p>
+				<p className='text-danger m-2'>ROJO para las solicitudes pendientes</p>
 				<p className='fw-bold m-2'>NEGRO para las solicitudes terminadas</p>
-				<p className='text-primary m-2'>AZUL para las solicitudes pendientes</p>
+				<p className='text-primary m-2'>AZUL para las solicitudes rechazadas</p>
 			</div>
-			<form onSubmit={formik.handleSubmit}>
+			<form>
 				<div className='d-flex'>
 					<big>
 						<label className='fw-bold ms-5 m-2'>Año:</label>
@@ -412,13 +430,10 @@ export const Reporte = () => {
 						value={formik.values.year}
 						onChange={formik.handleChange}
 					/>
-					<button type='submit' className='m-2 btn btn-primary'>
-						Buscar
-					</button>
 				</div>
 			</form>
 			<div className='mx-4'>
-				<table className='table table-sm table-bordered text-center align-middle'>
+				<table className='table table-sm table-bordered align-content-start'>
 					<thead className='bg-blue text-white'>
 						<tr>
 							<th scope='col'>Departamento</th>
@@ -456,7 +471,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -468,7 +483,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -482,7 +497,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -494,7 +509,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -508,7 +523,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -520,7 +535,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -534,7 +549,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -546,7 +561,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -560,7 +575,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -572,7 +587,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -586,7 +601,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -598,7 +613,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -612,7 +627,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -624,7 +639,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -638,7 +653,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -650,7 +665,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -664,7 +679,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -676,7 +691,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -690,7 +705,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -702,7 +717,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -716,7 +731,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -728,7 +743,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -742,7 +757,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.TotalProceso) {
 															return (
-																<p className='fw-bold d-inline text-primary m-1'>
+																<p className='fw-bold d-inline text-danger m-1'>
 																	{p.TotalProceso}
 																</p>
 															);
@@ -754,7 +769,7 @@ export const Reporte = () => {
 															);
 														} else if (!!p.TotalRechazadas) {
 															return (
-																<p className='fw-bold d-inline text-danger m-1'>
+																<p className='fw-bold d-inline text-primary m-1'>
 																	{p.TotalRechazadas}
 																</p>
 															);
@@ -812,7 +827,7 @@ export const Reporte = () => {
 													.map((p) => {
 														if (!!p.AñoProceso) {
 															return (
-																<p className='fw-bold text-primary m-1'>
+																<p className='fw-bold text-danger m-1'>
 																	{p.AñoProceso}
 																</p>
 															);

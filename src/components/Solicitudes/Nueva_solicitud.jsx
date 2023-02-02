@@ -43,7 +43,7 @@ export const NuevaSolicitud = () => {
 
 	const getAreas = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/areas');
+			const data = await fetch(process.env.REACT_APP_DEV + '/areas');
 			const res = await data.json();
 			setAreas(
 				res.sort(function (a, b) {
@@ -68,7 +68,7 @@ export const NuevaSolicitud = () => {
 
 	const getProb = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/problemasCliente');
+			const data = await fetch(process.env.REACT_APP_DEV + '/problemasCliente');
 			const res = await data.json();
 			!!res && setProb(res);
 		} catch (error) {
@@ -82,7 +82,7 @@ export const NuevaSolicitud = () => {
 	};
 	const getRev = async () => {
 		try {
-			const dataConf = await fetch(`http://localhost:4000/configs`);
+			const dataConf = await fetch(process.env.REACT_APP_DEV + `/configs`);
 			const resC = await dataConf.json();
 			!!resC && formik.setFieldValue('idPeriodo', resC[0].Valor);
 			!!resC && setRev(resC[1]); //el 3er campo es la revision
@@ -175,7 +175,7 @@ export const NuevaSolicitud = () => {
 			let work = req.slice(0, 200);
 			if (!submit) {
 				try {
-					const data = await fetch('http://localhost:4000/solicitudes', {
+					const data = await fetch(process.env.REACT_APP_DEV + '/solicitudes', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -332,7 +332,7 @@ export const NuevaSolicitud = () => {
 											prob.map((p) => {
 												return (
 													<div
-														className='d-inline-block w-auto input-group mb-3'
+														className='d-inline-block w-50 input-group mb-3'
 														key={p.idProblema}
 													>
 														<div className='input-group-prepend'>

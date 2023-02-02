@@ -53,7 +53,7 @@ export const NuevoAlumno = () => {
 
 			if (!submit) {
 				try {
-					const data = await fetch('http://localhost:4000/alumnos', {
+					const data = await fetch(process.env.REACT_APP_DEV + '/alumnos', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
@@ -65,7 +65,6 @@ export const NuevoAlumno = () => {
 						}),
 					});
 					const res = await data.json();
-					console.log(res);
 					setsubmit(false);
 					if (!!res.msg) {
 						Swal.fire(res.msg);
@@ -85,7 +84,7 @@ export const NuevoAlumno = () => {
 
 	const getCarreras = async () => {
 		try {
-			const data = await fetch('http://localhost:4000/carreras');
+			const data = await fetch(process.env.REACT_APP_DEV + '/carreras');
 			const res = await data.json();
 			!!res &&
 				setCarreras(

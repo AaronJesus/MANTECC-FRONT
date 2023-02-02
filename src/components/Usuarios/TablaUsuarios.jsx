@@ -17,7 +17,7 @@ export const TablaUsuarios = ({ users, cargando }) => {
 			if (result.isConfirmed) {
 				try {
 					const data = await fetch(
-						`http://localhost:4000/usuarioEstado/${rfc}`,
+						process.env.REACT_APP_DEV + `/usuarioEstado/${rfc}`,
 						{
 							method: 'PUT',
 							headers: { 'Content-Type': 'application/json' },
@@ -47,9 +47,12 @@ export const TablaUsuarios = ({ users, cargando }) => {
 		}).then(async (result) => {
 			if (result.isDenied) {
 				try {
-					const data = await fetch(`http://localhost:4000/usuario/${rfc}`, {
-						method: 'DELETE',
-					});
+					const data = await fetch(
+						process.env.REACT_APP_DEV + `/usuario/${rfc}`,
+						{
+							method: 'DELETE',
+						}
+					);
 					await data.json();
 
 					window.location.reload(false);
